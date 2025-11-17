@@ -4,7 +4,6 @@ using SharedKernel.Options;
 using RiskSvc.Infrastructure.Messaging;
 using RiskSvc.Domain.Abstractions;
 using RiskSvc.Infrastructure.Risk;
-using RiskSvc.Api.Middleware;
 using RiskSvc.Api.Tenancy;
 using RiskSvc.Application.Common.Behaviors;
 using RiskSvc.Application.Common.Tenancy;
@@ -16,7 +15,12 @@ public class Program
     public static void Main(string[] args)
     {
         var builder = WebApplication.CreateBuilder(args);
-        //builder.Logging.AddFilter("Microsoft", LogLevel.Information);
+
+        builder.Logging.ClearProviders();
+        builder.Logging.AddConsole();
+
+        builder.WebHost.UseUrls("http://localhost:5279");
+
         builder.Services.AddCors(options =>
         {
             options.AddPolicy("AllowFE", policy =>
@@ -32,13 +36,12 @@ public class Program
         builder.Services.AddEndpointsApiExplorer();
         builder.Services.AddSwaggerGen();
 
-        // MediatR
         builder.Services.AddMediatR(typeof(Program).Assembly);
 
         // Shared clock
         builder.Services.AddSingleton<IDateTime, SystemClock>();
 
-        // Tenant plumbing
+        // Tenancy pipeline
         builder.Services.AddHttpContextAccessor();
         builder.Services.AddScoped<ITenantProvider, HttpTenantProvider>();
         builder.Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(TenantBehavior<,>));
@@ -46,11 +49,11 @@ public class Program
         // In-memory repo
         builder.Services.AddSingleton<IRiskAssessmentRepository, InMemoryRiskAssessmentRepository>();
 
-        // Ticket events options
+        // Bind TicketEventsOptions from configuration
         builder.Services.Configure<TicketEventsOptions>(
             builder.Configuration.GetSection("TicketEvents"));
 
-        // Background consumer
+        // Background consumer (Kafka / ASB) with retry
         builder.Services.AddHostedService<TicketRiskAssessmentProcessor>();
 
         var app = builder.Build();
@@ -62,11 +65,7 @@ public class Program
         }
 
         app.UseRouting();
-
-        app.UseMiddleware<TenantResolutionMiddleware>();
-
         app.UseCors("AllowFE");
-
         app.MapControllers();
 
         app.Run();

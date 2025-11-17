@@ -3,6 +3,9 @@ using Azure.Messaging.ServiceBus;
 using Confluent.Kafka;
 using Contracts.Tickets;
 using MediatR;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using SharedKernel.Options;
 using RiskSvc.Application.Risk.Commands;
@@ -157,13 +160,13 @@ public sealed class TicketRiskAssessmentProcessor : BackgroundService
                 return;
             }
 
-            await HandleTicketEventAsync(evt, args.CancellationToken);
+            await HandleTicketEventWithRetryAsync(evt, args.CancellationToken);
             await args.CompleteMessageAsync(args.Message);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error handling TicketSubmittedEvent for risk assessment via ASB");
-            // TODO: DLQ / retry logic as needed.
+            // Let ASB retry via its own delivery semantics if we didn't complete.
         }
     }
 
@@ -233,7 +236,7 @@ public sealed class TicketRiskAssessmentProcessor : BackgroundService
                         evt.TicketId,
                         evt.TenantId);
 
-                    await HandleTicketEventAsync(evt, ct);
+                    await HandleTicketEventWithRetryAsync(evt, ct);
                 }
                 catch (OperationCanceledException)
                 {
@@ -255,7 +258,15 @@ public sealed class TicketRiskAssessmentProcessor : BackgroundService
         await Task.CompletedTask;
     }
 
-    // ===== Shared handler logic for both transports =====
+    // ===== Shared handler logic + retry =====
+
+    private async Task HandleTicketEventWithRetryAsync(TicketSubmittedEvent evt, CancellationToken ct)
+    {
+        await ExecuteWithRetryAsync(
+            operationName: $"RecordRiskAssessment for TicketId={evt.TicketId}",
+            action: () => HandleTicketEventAsync(evt, ct),
+            ct: ct);
+    }
 
     private async Task HandleTicketEventAsync(TicketSubmittedEvent evt, CancellationToken ct)
     {
@@ -282,6 +293,56 @@ public sealed class TicketRiskAssessmentProcessor : BackgroundService
         };
 
         await sender.Send(cmd, ct);
+    }
+
+    private async Task ExecuteWithRetryAsync(string operationName, Func<Task> action, CancellationToken ct)
+    {
+        const int maxAttempts = 3;
+        var delay = TimeSpan.FromSeconds(1);
+
+        for (var attempt = 1; attempt <= maxAttempts; attempt++)
+        {
+            try
+            {
+                await action();
+                return;
+            }
+            catch (OperationCanceledException) when (ct.IsCancellationRequested)
+            {
+                // shutting down – don't retry
+                throw;
+            }
+            catch (Exception ex)
+            {
+                if (attempt == maxAttempts)
+                {
+                    _logger.LogError(ex,
+                        "Operation {Operation} failed after {Attempts} attempts.",
+                        operationName,
+                        attempt);
+                    throw;
+                }
+
+                _logger.LogWarning(ex,
+                    "Operation {Operation} failed on attempt {Attempt}/{MaxAttempts}. Retrying in {Delay}...",
+                    operationName,
+                    attempt,
+                    maxAttempts,
+                    delay);
+
+                try
+                {
+                    await Task.Delay(delay, ct);
+                }
+                catch (OperationCanceledException) when (ct.IsCancellationRequested)
+                {
+                    throw;
+                }
+
+                // simple exponential backoff
+                delay = TimeSpan.FromSeconds(delay.TotalSeconds * 2);
+            }
+        }
     }
 
     public override async Task StopAsync(CancellationToken cancellationToken)
