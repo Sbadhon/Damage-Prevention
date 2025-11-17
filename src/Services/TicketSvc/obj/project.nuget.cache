@@ -1,0 +1,31 @@
+{
+  "version": 2,
+  "dgSpecHash": "jogTnQbr3p8=",
+  "success": true,
+  "projectFilePath": "/Users/sohana/Documents/damage-prevention-saas/src/Services/TicketSvc/TicketSvc.csproj",
+  "expectedPackageFiles": [
+    "/Users/sohana/.nuget/packages/azure.core/1.46.2/azure.core.1.46.2.nupkg.sha512",
+    "/Users/sohana/.nuget/packages/azure.core.amqp/1.3.1/azure.core.amqp.1.3.1.nupkg.sha512",
+    "/Users/sohana/.nuget/packages/azure.messaging.servicebus/7.20.1/azure.messaging.servicebus.7.20.1.nupkg.sha512",
+    "/Users/sohana/.nuget/packages/confluent.kafka/2.12.0/confluent.kafka.2.12.0.nupkg.sha512",
+    "/Users/sohana/.nuget/packages/librdkafka.redist/2.12.0/librdkafka.redist.2.12.0.nupkg.sha512",
+    "/Users/sohana/.nuget/packages/mediatr/11.1.0/mediatr.11.1.0.nupkg.sha512",
+    "/Users/sohana/.nuget/packages/mediatr.contracts/1.0.1/mediatr.contracts.1.0.1.nupkg.sha512",
+    "/Users/sohana/.nuget/packages/mediatr.extensions.microsoft.dependencyinjection/11.1.0/mediatr.extensions.microsoft.dependencyinjection.11.1.0.nupkg.sha512",
+    "/Users/sohana/.nuget/packages/microsoft.azure.amqp/2.7.0/microsoft.azure.amqp.2.7.0.nupkg.sha512",
+    "/Users/sohana/.nuget/packages/microsoft.bcl.asyncinterfaces/8.0.0/microsoft.bcl.asyncinterfaces.8.0.0.nupkg.sha512",
+    "/Users/sohana/.nuget/packages/microsoft.extensions.apidescription.server/9.0.0/microsoft.extensions.apidescription.server.9.0.0.nupkg.sha512",
+    "/Users/sohana/.nuget/packages/microsoft.extensions.dependencyinjection.abstractions/8.0.2/microsoft.extensions.dependencyinjection.abstractions.8.0.2.nupkg.sha512",
+    "/Users/sohana/.nuget/packages/microsoft.extensions.logging.abstractions/8.0.3/microsoft.extensions.logging.abstractions.8.0.3.nupkg.sha512",
+    "/Users/sohana/.nuget/packages/microsoft.openapi/2.3.0/microsoft.openapi.2.3.0.nupkg.sha512",
+    "/Users/sohana/.nuget/packages/swashbuckle.aspnetcore/10.0.1/swashbuckle.aspnetcore.10.0.1.nupkg.sha512",
+    "/Users/sohana/.nuget/packages/swashbuckle.aspnetcore.swagger/10.0.1/swashbuckle.aspnetcore.swagger.10.0.1.nupkg.sha512",
+    "/Users/sohana/.nuget/packages/swashbuckle.aspnetcore.swaggergen/10.0.1/swashbuckle.aspnetcore.swaggergen.10.0.1.nupkg.sha512",
+    "/Users/sohana/.nuget/packages/swashbuckle.aspnetcore.swaggerui/10.0.1/swashbuckle.aspnetcore.swaggerui.10.0.1.nupkg.sha512",
+    "/Users/sohana/.nuget/packages/system.clientmodel/1.4.2/system.clientmodel.1.4.2.nupkg.sha512",
+    "/Users/sohana/.nuget/packages/system.memory/4.5.4/system.memory.4.5.4.nupkg.sha512",
+    "/Users/sohana/.nuget/packages/system.memory.data/6.0.1/system.memory.data.6.0.1.nupkg.sha512",
+    "/Users/sohana/.nuget/packages/system.text.json/8.0.5/system.text.json.8.0.5.nupkg.sha512"
+  ],
+  "logs": []
+}

@@ -1,0 +1,12 @@
+{
+  "Version": 1,
+  "Hash": "uyJEOq0gxI8l5BLVeQtzNgQj4W5bbUu7dBfFPGkL/Wg=",
+  "Source": "TicketSvc",
+  "BasePath": "_content/TicketSvc",
+  "Mode": "Default",
+  "ManifestType": "Build",
+  "ReferencedProjectsConfiguration": [],
+  "DiscoveryPatterns": [],
+  "Assets": [],
+  "Endpoints": []
+}

@@ -1,0 +1,12 @@
+{
+  "Version": 1,
+  "Hash": "fVJ9deJ93uMyzTalDpxfTNRyLW3Q5HycQy/JBVgWQ2o=",
+  "Source": "AssetCatalogSvc",
+  "BasePath": "_content/AssetCatalogSvc",
+  "Mode": "Default",
+  "ManifestType": "Build",
+  "ReferencedProjectsConfiguration": [],
+  "DiscoveryPatterns": [],
+  "Assets": [],
+  "Endpoints": []
+}

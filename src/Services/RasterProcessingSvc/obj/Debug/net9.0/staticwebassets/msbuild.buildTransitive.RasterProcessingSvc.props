@@ -1,0 +1,3 @@
+﻿<Project>
+  <Import Project="../buildMultiTargeting/RasterProcessingSvc.props" />
+</Project>
