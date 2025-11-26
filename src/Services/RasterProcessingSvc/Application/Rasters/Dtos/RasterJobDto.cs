@@ -15,12 +15,12 @@ public sealed class RasterJobDto
     public static RasterJobDto FromEntity(RasterJob job) =>
         new()
         {
-            Id              = job.Id,
-            SourceFilePath  = job.SourceFilePath,
+            Id = job.Id,
+            SourceFilePath = job.SourceFilePath,
             GeoJsonLocation = job.GeoJsonLocation,
-            Status          = job.Status.ToString(),
-            ErrorMessage    = job.ErrorMessage,
-            CreatedAt       = job.CreatedAt,
-            CompletedAt     = job.CompletedAt
+            Status = job.Status.ToString(),
+            ErrorMessage = job.ErrorMessage,
+            CreatedAt = job.CreatedAt,
+            CompletedAt = job.CompletedAt
         };
 }

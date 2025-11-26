@@ -8,10 +8,10 @@ namespace TicketSvc.Application.Tickets.Commands;
 public sealed class CancelTicketCommand : IRequest, ITenantScopedRequest
 {
     public string TenantId { get; set; } = default!;
-    public Guid TicketId   { get; init; }
+    public Guid TicketId { get; init; }
 
     // Optional: reason for auditing/logging (not used in domain yet)
-    public string? Reason  { get; init; }
+    public string? Reason { get; init; }
 }
 
 public sealed class CancelTicketCommandHandler
@@ -25,7 +25,7 @@ public sealed class CancelTicketCommandHandler
         IDateTime clock)
     {
         _repository = repository;
-        _clock      = clock;
+        _clock = clock;
     }
 
     public async Task<Unit> Handle(
@@ -37,7 +37,7 @@ public sealed class CancelTicketCommandHandler
         if (ticket is null)
             throw new InvalidOperationException($"Ticket {request.TicketId} not found.");
 
-        if (!string.Equals(ticket.TenantId, request.TenantId, StringComparison.Ordinal))
+        if (!string.Equals(ticket.TenantId.Value, request.TenantId, StringComparison.Ordinal))
             throw new InvalidOperationException("Ticket does not belong to current tenant.");
 
         ticket.Cancel(_clock.UtcNow);

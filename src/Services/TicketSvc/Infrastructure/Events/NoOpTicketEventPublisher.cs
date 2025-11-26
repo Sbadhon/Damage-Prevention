@@ -7,10 +7,10 @@ namespace TicketSvc.Infrastructure.Events;
 public sealed class NoOpTicketEventPublisher : ITicketEventPublisher
 {
     public Task PublishTicketSubmittedAsync(
-        Ticket ticket, 
+        Ticket ticket,
         TicketSubmittedEvent payload,
         CancellationToken ct = default)
     {
-        return Task.CompletedTask; 
+        return Task.CompletedTask;
     }
 }

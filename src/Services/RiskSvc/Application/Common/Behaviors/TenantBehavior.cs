@@ -2,7 +2,6 @@ using MediatR;
 using RiskSvc.Application.Common.Tenancy;
 
 namespace RiskSvc.Application.Common.Behaviors;
-
 public sealed class TenantBehavior<TRequest, TResponse>
     : IPipelineBehavior<TRequest, TResponse>
     where TRequest : ITenantScopedRequest, IRequest<TResponse>
@@ -19,25 +18,19 @@ public sealed class TenantBehavior<TRequest, TResponse>
         RequestHandlerDelegate<TResponse> next,
         CancellationToken cancellationToken)
     {
-        if (request is null)
-        {
-            throw new ArgumentNullException(nameof(request));
-        }
-        
+        // If TenantId is already set (e.g. from a background processor or system command),
+        // do NOT override it and do NOT require HttpContext.
         if (!string.IsNullOrWhiteSpace(request.TenantId))
         {
             return await next();
         }
 
-        // 2️⃣ Otherwise, we're in an HTTP context and expect X-Tenant-Id header
-        var ambientTenantId = _tenantProvider.CurrentTenantId;
+        var tenantId = _tenantProvider.CurrentTenantId;
 
-        if (string.IsNullOrWhiteSpace(ambientTenantId))
-        {
+        if (string.IsNullOrWhiteSpace(tenantId))
             throw new InvalidOperationException("TenantId is required for this operation.");
-        }
 
-        request.TenantId = ambientTenantId;
+        request.TenantId = tenantId;
 
         return await next();
     }

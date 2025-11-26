@@ -8,13 +8,17 @@ public sealed class InMemoryTicketRepository : ITicketRepository
 {
     private readonly ConcurrentDictionary<Guid, Ticket> _store = new();
 
-    public Task<Ticket?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
+    public Task<Ticket?> GetByIdAsync(
+        Guid id,
+        CancellationToken cancellationToken = default)
     {
         _store.TryGetValue(id, out var ticket);
         return Task.FromResult(ticket);
     }
 
-    public Task AddAsync(Ticket ticket, CancellationToken cancellationToken = default)
+    public Task AddAsync(
+        Ticket ticket,
+        CancellationToken cancellationToken = default)
     {
         _store[ticket.Id] = ticket;
         return Task.CompletedTask;
@@ -22,7 +26,7 @@ public sealed class InMemoryTicketRepository : ITicketRepository
 
     public Task SaveChangesAsync(CancellationToken cancellationToken = default)
     {
-        // In-memory: nothing to flush.
+        // In-memory store has no real persistence.
         return Task.CompletedTask;
     }
 
@@ -32,14 +36,12 @@ public sealed class InMemoryTicketRepository : ITicketRepository
         int pageSize,
         CancellationToken cancellationToken = default)
     {
-        if (pageNumber < 1) pageNumber = 1;
-        if (pageSize   < 1) pageSize   = 20;
-
         var query = _store.Values
-            .Where(t => string.Equals(t.TenantId, tenantId, StringComparison.Ordinal))
+            .Where(t => string.Equals(t.TenantId.Value, tenantId, StringComparison.Ordinal))
             .OrderByDescending(t => t.CreatedAt);
 
         var total = query.Count();
+
         var items = query
             .Skip((pageNumber - 1) * pageSize)
             .Take(pageSize)

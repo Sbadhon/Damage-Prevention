@@ -8,9 +8,9 @@ namespace RiskSvc.Application.Risk.Queries;
 public sealed class ListRiskAssessmentsResult
 {
     public required IReadOnlyList<RiskAssessmentDto> Items { get; init; }
-    public int TotalCount  { get; init; }
-    public int PageNumber  { get; init; }
-    public int PageSize    { get; init; }
+    public int TotalCount { get; init; }
+    public int PageNumber { get; init; }
+    public int PageSize { get; init; }
 }
 
 public sealed class ListRiskAssessmentsQuery
@@ -18,7 +18,7 @@ public sealed class ListRiskAssessmentsQuery
 {
     public string TenantId { get; set; } = default!;
     public int PageNumber { get; init; } = 1;
-    public int PageSize   { get; init; } = 20;
+    public int PageSize { get; init; } = 20;
 }
 
 public sealed class ListRiskAssessmentsQueryHandler
@@ -45,10 +45,10 @@ public sealed class ListRiskAssessmentsQueryHandler
 
         return new ListRiskAssessmentsResult
         {
-            Items      = dtos,
+            Items = dtos,
             TotalCount = total,
             PageNumber = request.PageNumber,
-            PageSize   = request.PageSize
+            PageSize = request.PageSize
         };
     }
 }

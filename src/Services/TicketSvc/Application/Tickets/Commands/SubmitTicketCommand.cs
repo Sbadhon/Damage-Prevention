@@ -1,8 +1,10 @@
+using System.Text.Json;
 using MediatR;
 using SharedKernel;
+using SharedKernel.Tenancy;
 using TicketSvc.Application.Common.Tenancy;
 using TicketSvc.Domain.Abstractions;
-using TicketSvc.Domain.Events;
+using TicketSvc.Domain.Outbox;
 using TicketSvc.Domain.Tickets;
 using Contracts.Tickets;
 
@@ -20,54 +22,69 @@ public sealed class SubmitTicketCommand : IRequest<Guid>, ITenantScopedRequest
     public double Lon { get; init; }
 }
 
-public sealed class SubmitTicketCommandHandler : IRequestHandler<SubmitTicketCommand, Guid>
+public sealed class SubmitTicketCommandHandler
+    : IRequestHandler<SubmitTicketCommand, Guid>
 {
     private readonly ITicketRepository _tickets;
-    private readonly ITicketEventPublisher _events;
+    private readonly IOutboxRepository _outbox;
     private readonly IDateTime _clock;
 
     public SubmitTicketCommandHandler(
         ITicketRepository tickets,
-        ITicketEventPublisher events,
+        IOutboxRepository outbox,
         IDateTime clock)
     {
         _tickets = tickets;
-        _events = events;
+        _outbox = outbox;
         _clock = clock;
     }
 
-    public async Task<Guid> Handle(SubmitTicketCommand request, CancellationToken cancellationToken)
+    public async Task<Guid> Handle(
+        SubmitTicketCommand request,
+        CancellationToken cancellationToken)
     {
         var now = _clock.UtcNow;
-
         var ticket = Ticket.CreateDraft(
-            request.TenantId,
+            new TenantId(request.TenantId),
             request.WorkType,
             request.Address,
             request.Description,
             request.Lat,
             request.Lon,
-            now);
-
-        ticket.Submit(now);
-
-        await _tickets.AddAsync(ticket, cancellationToken);
-        await _tickets.SaveChangesAsync(cancellationToken);
-
-        var evt = new TicketSubmittedEvent(
-            TenantId: request.TenantId,
-            TicketId: ticket.Id,
-            WorkType: ticket.WorkType,
-            Address: ticket.Address,
-            Description: ticket.Description,
-            Lat: ticket.Lat,
-            Lon: ticket.Lon,
-            SubmittedAt: now
+            now
         );
 
+        await _tickets.AddAsync(ticket, cancellationToken);
 
-        await _events.PublishTicketSubmittedAsync(ticket, evt, cancellationToken);
+        // TicketSubmittedEvent is a positional ctor:
+        // TicketSubmittedEvent(string tenantId, Guid ticketId, string workType,
+        //                      string address, string description, double lat, double lon, DateTimeOffset submittedAt)
+        var evt = new TicketSubmittedEvent(
+            ticket.TenantId.Value,
+            ticket.Id,
+            ticket.WorkType,
+            ticket.Address,
+            ticket.Description,
+            ticket.Lat,
+            ticket.Lon,
+            now
+        );
 
+        // Serialize event for Outbox
+        var payload = JsonSerializer.Serialize(evt);
+
+        // OutboxMessage – we’ll fix its signature in the next step
+        var outboxMessage = OutboxMessage.Create(
+            ticketId: ticket.Id,
+            tenantId: ticket.TenantId.Value,
+            type: nameof(TicketSubmittedEvent),
+            payload: payload,
+            occurredAt: now
+        );
+
+        await _outbox.AddAsync(outboxMessage, cancellationToken);
+
+        // No direct publish here; OutboxDispatcher will publish later
         return ticket.Id;
     }
 }

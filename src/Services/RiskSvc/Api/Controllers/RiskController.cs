@@ -55,7 +55,7 @@ public sealed class RiskController : ControllerBase
         var query = new ListRiskAssessmentsQuery
         {
             PageNumber = pageNumber,
-            PageSize   = pageSize
+            PageSize = pageSize
         };
 
         var result = await _sender.Send(query, ct);

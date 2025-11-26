@@ -33,7 +33,7 @@ public sealed class GetTicketByIdQueryHandler
             return null;
 
         // Enforce tenant isolation
-        if (!string.Equals(ticket.TenantId, request.TenantId, StringComparison.Ordinal))
+        if (!string.Equals(ticket.TenantId.Value, request.TenantId, StringComparison.Ordinal))
             return null;
 
         return TicketDto.FromEntity(ticket);

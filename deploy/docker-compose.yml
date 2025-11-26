@@ -16,14 +16,14 @@ services:
     platform: linux/amd64
     container_name: dp-sqlserver
     environment:
-      - ACCEPT_EULA=Y
-      - SA_PASSWORD=SqlStr0ng!Passw0rd
-      - MSSQL_PID=Express
+      ACCEPT_EULA: Y
+      SA_PASSWORD: SqlStr0ng!Passw0rd
+      MSSQL_PID: Express
     ports:
       - "1433:1433"
     volumes:
-        - mssqldata:/var/opt/mssql
-        - ./sqlserver-init:/docker-entrypoint-initdb.d
+      - mssqldata:/var/opt/mssql
+      - ./sqlserver-init:/docker-entrypoint-initdb.d
 
   adminer:
     image: adminer
@@ -58,12 +58,12 @@ services:
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
       KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
       KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: dp-rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
 volumes:
   pgdata:
   mssqldata:
-
-# docker exec -it dp-kafka kafka-topics --create \
-#   --topic ticket-submitted \
-#   --bootstrap-server localhost:9092 \
-#   --replication-factor 1 \
-#   --partitions 1

@@ -27,7 +27,7 @@ public sealed class AzureServiceBusTicketEventPublisher : ITicketEventPublisher,
 
         var topicName = configuration["TicketEvents:TopicName"] ?? "ticket-submitted";
 
-        // 🟦 Important difference: For emulator we must disable SSL
+        // Important difference: For emulator we must disable SSL
         var clientOptions = new ServiceBusClientOptions();
 
         if (useEmulator)

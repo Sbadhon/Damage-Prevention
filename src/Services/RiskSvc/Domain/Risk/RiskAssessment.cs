@@ -1,4 +1,5 @@
 using SharedKernel;
+using SharedKernel.Domain.Entities;
 
 namespace RiskSvc.Domain.Risk;
 
@@ -12,15 +13,15 @@ public enum RiskLevel
 public sealed class RiskAssessment : AggregateRoot<Guid>
 {
     public string TenantId { get; private set; } = default!;
-    public Guid TicketId   { get; private set; }
+    public Guid TicketId { get; private set; }
 
-    public double Score    { get; private set; }
+    public double Score { get; private set; }
     public RiskLevel Level { get; private set; }
 
     public string WorkType { get; private set; } = default!;
-    public string Address  { get; private set; } = default!;
-    public double Lat      { get; private set; }
-    public double Lon      { get; private set; }
+    public string Address { get; private set; } = default!;
+    public double Lat { get; private set; }
+    public double Lon { get; private set; }
 
     public DateTimeOffset AssessedAt { get; private set; }
 
@@ -38,15 +39,15 @@ public sealed class RiskAssessment : AggregateRoot<Guid>
         double lon,
         DateTimeOffset assessedAt)
     {
-        Id        = id;
-        TenantId  = tenantId;
-        TicketId  = ticketId;
-        Score     = score;
-        Level     = level;
-        WorkType  = workType;
-        Address   = address;
-        Lat       = lat;
-        Lon       = lon;
+        Id = id;
+        TenantId = tenantId;
+        TicketId = ticketId;
+        Score = score;
+        Level = level;
+        WorkType = workType;
+        Address = address;
+        Lat = lat;
+        Lon = lon;
         AssessedAt = assessedAt;
     }
 

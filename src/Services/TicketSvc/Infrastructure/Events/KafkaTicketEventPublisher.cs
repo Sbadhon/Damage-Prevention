@@ -1,8 +1,6 @@
 using System.Text.Json;
 using Confluent.Kafka;
 using Contracts.Tickets;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Logging;
 using TicketSvc.Domain.Events;
 using TicketSvc.Domain.Tickets;
 
@@ -41,13 +39,13 @@ public sealed class KafkaTicketEventPublisher : ITicketEventPublisher, IDisposab
         CancellationToken ct = default)
     {
         var json = JsonSerializer.Serialize(payload);
-        var key  = payload.TicketId.ToString();
+        var key = payload.TicketId.ToString();
 
         try
         {
             var result = await _producer.ProduceAsync(_topic, new Message<string, string>
             {
-                Key   = key,
+                Key = key,
                 Value = json
             }, ct);
 

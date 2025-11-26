@@ -13,9 +13,9 @@ public class Program
 
         // Read JWT settings
         var jwtSection = builder.Configuration.GetSection("Jwt");
-        var issuer   = jwtSection["Issuer"]!;
+        var issuer = jwtSection["Issuer"]!;
         var audience = jwtSection["Audience"]!;
-        var secret   = jwtSection["Secret"]!; // dev-only
+        var secret = jwtSection["Secret"]!; // dev-only
 
         // Swagger
         builder.Services.AddEndpointsApiExplorer();
@@ -47,7 +47,7 @@ public class Program
                 claims.AddRange(request.Roles.Select(r => new Claim(ClaimTypes.Role, r)));
             }
 
-            var key   = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secret));
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secret));
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
             var jwt = new JwtSecurityToken(
@@ -64,9 +64,9 @@ public class Program
             return Results.Ok(new
             {
                 access_token = tokenString,
-                token_type   = "Bearer",
-                expires_in   = 3600,
-                issued_at    = now.ToString("O")
+                token_type = "Bearer",
+                expires_in = 3600,
+                issued_at = now.ToString("O")
             });
         });
 

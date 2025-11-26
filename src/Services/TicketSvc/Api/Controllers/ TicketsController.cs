@@ -28,10 +28,10 @@ public sealed class TicketsController : ControllerBase
         var command = new SubmitTicketCommand
         {
             WorkType = request.WorkType,
-            Address  = request.Address,
+            Address = request.Address,
             Description = request.Description,
-            Lat      = request.Lat,
-            Lon      = request.Lon
+            Lat = request.Lat,
+            Lon = request.Lon
         };
 
         var id = await _sender.Send(command, ct);
@@ -39,7 +39,7 @@ public sealed class TicketsController : ControllerBase
         var response = new
         {
             TicketId = id,
-            Status   = TicketStatus.Submitted.ToString()
+            Status = TicketStatus.Submitted.ToString()
         };
 
         return AcceptedAtAction(nameof(GetTicketById), new { id }, response);
@@ -62,11 +62,11 @@ public sealed class TicketsController : ControllerBase
         var response = new TicketResponse(
             TicketId: dto.Id,
             WorkType: dto.WorkType,
-            Address:  dto.Address,
+            Address: dto.Address,
             Description: dto.Description,
-            Lat:      dto.Lat,
-            Lon:      dto.Lon,
-            Status:   dto.Status,
+            Lat: dto.Lat,
+            Lon: dto.Lon,
+            Status: dto.Status,
             CreatedAt: dto.CreatedAt,
             SubmittedAt: dto.SubmittedAt,
             CompletedAt: dto.CompletedAt,
@@ -86,7 +86,7 @@ public sealed class TicketsController : ControllerBase
         var query = new ListTicketsQuery
         {
             PageNumber = pageNumber,
-            PageSize   = pageSize
+            PageSize = pageSize
         };
 
         var result = await _sender.Send(query, ct);
@@ -95,11 +95,11 @@ public sealed class TicketsController : ControllerBase
             .Select(dto => new TicketResponse(
                 TicketId: dto.Id,
                 WorkType: dto.WorkType,
-                Address:  dto.Address,
+                Address: dto.Address,
                 Description: dto.Description,
-                Lat:      dto.Lat,
-                Lon:      dto.Lon,
-                Status:   dto.Status,
+                Lat: dto.Lat,
+                Lon: dto.Lon,
+                Status: dto.Status,
                 CreatedAt: dto.CreatedAt,
                 SubmittedAt: dto.SubmittedAt,
                 CompletedAt: dto.CompletedAt,
@@ -142,7 +142,7 @@ public sealed class TicketsController : ControllerBase
         var command = new CancelTicketCommand
         {
             TicketId = id,
-            Reason   = reason
+            Reason = reason
         };
 
         await _sender.Send(command, ct);

@@ -9,7 +9,7 @@ public sealed class GetRiskByTicketIdQuery
     : IRequest<RiskAssessmentDto?>, ITenantScopedRequest
 {
     public string TenantId { get; set; } = default!;
-    public Guid TicketId   { get; init; }
+    public Guid TicketId { get; init; }
 }
 
 public sealed class GetRiskByTicketIdQueryHandler

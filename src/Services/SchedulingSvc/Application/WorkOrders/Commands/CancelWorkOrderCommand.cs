@@ -13,7 +13,7 @@ public sealed class CancelWorkOrderCommand : IRequest<Unit>, ITenantScopedReques
 }
 
 public sealed class CancelWorkOrderCommandHandler
-    : IRequestHandler<CancelWorkOrderCommand, Unit> 
+    : IRequestHandler<CancelWorkOrderCommand, Unit>
 {
     private readonly IWorkOrderRepository _repository;
     private readonly IDateTime _clock;

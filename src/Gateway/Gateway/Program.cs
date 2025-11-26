@@ -9,22 +9,22 @@ var services = builder.Services;
 
 // Read JWT settings from appsettings.json
 var jwtSection = builder.Configuration.GetSection("Jwt");
-var issuer   = jwtSection["Issuer"]!;
+var issuer = jwtSection["Issuer"]!;
 var audience = jwtSection["Audience"]!;
-var secret   = jwtSection["Secret"]!;
+var secret = jwtSection["Secret"]!;
 
 // Build token validation parameters (like JwtBearer would)
 var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secret));
 var tokenValidationParameters = new TokenValidationParameters
 {
-    ValidateIssuer           = true,
-    ValidIssuer              = issuer,
-    ValidateAudience         = true,
-    ValidAudience            = audience,
+    ValidateIssuer = true,
+    ValidIssuer = issuer,
+    ValidateAudience = true,
+    ValidAudience = audience,
     ValidateIssuerSigningKey = true,
-    IssuerSigningKey         = key,
-    ValidateLifetime         = true,
-    ClockSkew                = TimeSpan.Zero
+    IssuerSigningKey = key,
+    ValidateLifetime = true,
+    ClockSkew = TimeSpan.Zero
 };
 
 // Swagger
@@ -87,9 +87,9 @@ app.MapGet("/whoami", (HttpContext ctx) =>
         return Results.Unauthorized();
     }
 
-    var name   = user.Identity?.Name ?? user.FindFirst("name")?.Value ?? "unknown";
+    var name = user.Identity?.Name ?? user.FindFirst("name")?.Value ?? "unknown";
     var tenant = user.FindFirst("tenant")?.Value ?? "n/a";
-    var roles  = user.FindAll(ClaimTypes.Role).Select(c => c.Value).ToArray();
+    var roles = user.FindAll(ClaimTypes.Role).Select(c => c.Value).ToArray();
 
     return Results.Ok(new
     {

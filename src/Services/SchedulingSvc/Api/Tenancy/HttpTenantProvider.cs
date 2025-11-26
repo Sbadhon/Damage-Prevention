@@ -19,13 +19,16 @@ public sealed class HttpTenantProvider : ITenantProvider
         {
             var httpContext = _httpContextAccessor.HttpContext;
             if (httpContext is null)
-                return null;
-
-            if (httpContext.Items.TryGetValue(TenantResolutionMiddleware.TenantItemKey, out var value)
-                && value is string tenantId)
             {
-                return tenantId;
+                return null;
             }
+            if (httpContext.Request.Headers.TryGetValue("X-Tenant-Id", out var headerValue) &&
+                !string.IsNullOrWhiteSpace(headerValue))
+            {
+                return headerValue.ToString();
+            }
+
+            //(Optional) Try JWT claims if adding auth later
 
             return null;
         }

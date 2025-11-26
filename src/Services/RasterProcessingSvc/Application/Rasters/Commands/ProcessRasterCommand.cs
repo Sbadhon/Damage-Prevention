@@ -24,9 +24,9 @@ public sealed class ProcessRasterCommandHandler
         IGeoJsonStorage storage,
         IRasterJobRepository jobs)
     {
-        _reader  = reader;
+        _reader = reader;
         _storage = storage;
-        _jobs    = jobs;
+        _jobs = jobs;
     }
 
     public async Task<RasterJobDto> Handle(
@@ -73,7 +73,7 @@ public sealed class ProcessRasterCommandHandler
             featureCollection.Add(feature);
         }
 
-        var fileName    = $"raster-{Guid.NewGuid():N}.geojson";
+        var fileName = $"raster-{Guid.NewGuid():N}.geojson";
         var geoJsonPath = Path.Combine(Path.GetTempPath(), fileName);
 
         var serializer = GeoJsonSerializer.Create();

@@ -71,3 +71,10 @@
 /Users/sohana/Documents/damage-prevention-saas/src/Services/RiskSvc/obj/Debug/net9.0/RiskSvc.pdb
 /Users/sohana/Documents/damage-prevention-saas/src/Services/RiskSvc/obj/Debug/net9.0/RiskSvc.genruntimeconfig.cache
 /Users/sohana/Documents/damage-prevention-saas/src/Services/RiskSvc/obj/Debug/net9.0/ref/RiskSvc.dll
+/Users/sohana/Documents/damage-prevention-saas/src/Services/RiskSvc/obj/Debug/net9.0/RiskSvc.sourcelink.json
+/Users/sohana/Documents/damage-prevention-saas/src/Services/RiskSvc/bin/Debug/net9.0/MassTransit.dll
+/Users/sohana/Documents/damage-prevention-saas/src/Services/RiskSvc/bin/Debug/net9.0/MassTransit.Abstractions.dll
+/Users/sohana/Documents/damage-prevention-saas/src/Services/RiskSvc/bin/Debug/net9.0/MassTransit.AspNetCoreIntegration.dll
+/Users/sohana/Documents/damage-prevention-saas/src/Services/RiskSvc/bin/Debug/net9.0/MassTransit.ExtensionsDependencyInjectionIntegration.dll
+/Users/sohana/Documents/damage-prevention-saas/src/Services/RiskSvc/bin/Debug/net9.0/MassTransit.RabbitMqTransport.dll
+/Users/sohana/Documents/damage-prevention-saas/src/Services/RiskSvc/bin/Debug/net9.0/RabbitMQ.Client.dll

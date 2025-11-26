@@ -8,9 +8,9 @@ namespace TicketSvc.Application.Tickets.Queries;
 public sealed class ListTicketsResult
 {
     public required IReadOnlyList<TicketDto> Items { get; init; }
-    public int TotalCount  { get; init; }
-    public int PageNumber  { get; init; }
-    public int PageSize    { get; init; }
+    public int TotalCount { get; init; }
+    public int PageNumber { get; init; }
+    public int PageSize { get; init; }
 }
 
 public sealed class ListTicketsQuery
@@ -21,7 +21,7 @@ public sealed class ListTicketsQuery
 
     // Paging
     public int PageNumber { get; init; } = 1;
-    public int PageSize   { get; init; } = 20;
+    public int PageSize { get; init; } = 20;
 }
 
 public sealed class ListTicketsQueryHandler
@@ -50,10 +50,10 @@ public sealed class ListTicketsQueryHandler
 
         return new ListTicketsResult
         {
-            Items      = dtos,
+            Items = dtos,
             TotalCount = total,
             PageNumber = request.PageNumber,
-            PageSize   = request.PageSize
+            PageSize = request.PageSize
         };
     }
 }

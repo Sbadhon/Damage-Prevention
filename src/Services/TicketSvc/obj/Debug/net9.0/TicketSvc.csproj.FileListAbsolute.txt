@@ -72,3 +72,10 @@
 /Users/sohana/Documents/damage-prevention-saas/src/Services/TicketSvc/obj/Debug/net9.0/TicketSvc.pdb
 /Users/sohana/Documents/damage-prevention-saas/src/Services/TicketSvc/obj/Debug/net9.0/TicketSvc.genruntimeconfig.cache
 /Users/sohana/Documents/damage-prevention-saas/src/Services/TicketSvc/obj/Debug/net9.0/ref/TicketSvc.dll
+/Users/sohana/Documents/damage-prevention-saas/src/Services/TicketSvc/obj/Debug/net9.0/TicketSvc.sourcelink.json
+/Users/sohana/Documents/damage-prevention-saas/src/Services/TicketSvc/bin/Debug/net9.0/MassTransit.dll
+/Users/sohana/Documents/damage-prevention-saas/src/Services/TicketSvc/bin/Debug/net9.0/MassTransit.Abstractions.dll
+/Users/sohana/Documents/damage-prevention-saas/src/Services/TicketSvc/bin/Debug/net9.0/MassTransit.AspNetCoreIntegration.dll
+/Users/sohana/Documents/damage-prevention-saas/src/Services/TicketSvc/bin/Debug/net9.0/MassTransit.ExtensionsDependencyInjectionIntegration.dll
+/Users/sohana/Documents/damage-prevention-saas/src/Services/TicketSvc/bin/Debug/net9.0/MassTransit.RabbitMqTransport.dll
+/Users/sohana/Documents/damage-prevention-saas/src/Services/TicketSvc/bin/Debug/net9.0/RabbitMQ.Client.dll

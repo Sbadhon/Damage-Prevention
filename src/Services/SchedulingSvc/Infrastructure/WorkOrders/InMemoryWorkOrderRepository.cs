@@ -33,7 +33,7 @@ public sealed class InMemoryWorkOrderRepository : IWorkOrderRepository
         CancellationToken ct = default)
     {
         if (pageNumber < 1) pageNumber = 1;
-        if (pageSize   < 1) pageSize   = 20;
+        if (pageSize < 1) pageSize = 20;
 
         var query = _store.Values
             .Where(w => string.Equals(w.TenantId, tenantId, StringComparison.Ordinal))

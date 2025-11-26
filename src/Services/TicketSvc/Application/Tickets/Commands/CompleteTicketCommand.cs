@@ -7,8 +7,9 @@ namespace TicketSvc.Application.Tickets.Commands;
 
 public sealed class CompleteTicketCommand : IRequest, ITenantScopedRequest
 {
-    public string TenantId { get; set; } = default!;   // injected
-    public Guid TicketId   { get; init; }
+    // Filled by TenantBehavior from ITenantProvider
+    public string TenantId { get; set; } = default!;
+    public Guid TicketId { get; init; }
 }
 
 public sealed class CompleteTicketCommandHandler
@@ -22,7 +23,7 @@ public sealed class CompleteTicketCommandHandler
         IDateTime clock)
     {
         _repository = repository;
-        _clock      = clock;
+        _clock = clock;
     }
 
     public async Task<Unit> Handle(
@@ -34,7 +35,7 @@ public sealed class CompleteTicketCommandHandler
         if (ticket is null)
             throw new InvalidOperationException($"Ticket {request.TicketId} not found.");
 
-        if (!string.Equals(ticket.TenantId, request.TenantId, StringComparison.Ordinal))
+        if (!string.Equals(ticket.TenantId.Value, request.TenantId, StringComparison.Ordinal))
             throw new InvalidOperationException("Ticket does not belong to current tenant.");
 
         ticket.Complete(_clock.UtcNow);

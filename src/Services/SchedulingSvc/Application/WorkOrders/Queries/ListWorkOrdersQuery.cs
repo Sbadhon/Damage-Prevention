@@ -8,9 +8,9 @@ namespace SchedulingSvc.Application.WorkOrders.Queries;
 public sealed class ListWorkOrdersResult
 {
     public required IReadOnlyList<WorkOrderDto> Items { get; init; }
-    public int TotalCount  { get; init; }
-    public int PageNumber  { get; init; }
-    public int PageSize    { get; init; }
+    public int TotalCount { get; init; }
+    public int PageNumber { get; init; }
+    public int PageSize { get; init; }
 }
 
 public sealed class ListWorkOrdersQuery
@@ -18,7 +18,7 @@ public sealed class ListWorkOrdersQuery
 {
     public string TenantId { get; set; } = default!;
     public int PageNumber { get; init; } = 1;
-    public int PageSize   { get; init; } = 20;
+    public int PageSize { get; init; } = 20;
 }
 
 public sealed class ListWorkOrdersQueryHandler
@@ -45,10 +45,10 @@ public sealed class ListWorkOrdersQueryHandler
 
         return new ListWorkOrdersResult
         {
-            Items      = dtos,
+            Items = dtos,
             TotalCount = total,
             PageNumber = request.PageNumber,
-            PageSize   = request.PageSize
+            PageSize = request.PageSize
         };
     }
 }

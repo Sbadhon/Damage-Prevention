@@ -1,4 +1,5 @@
 using SharedKernel;
+using SharedKernel.Domain.Entities;
 
 namespace SchedulingSvc.Domain.WorkOrders;
 
@@ -14,18 +15,18 @@ public enum WorkOrderStatus
 public sealed class WorkOrder : AggregateRoot<Guid>
 {
     public string TenantId { get; private set; } = default!;
-    public Guid TicketId   { get; private set; }
+    public Guid TicketId { get; private set; }
 
     public string WorkType { get; private set; } = default!;
-    public string Address  { get; private set; } = default!;
-    public double Lat      { get; private set; }
-    public double Lon      { get; private set; }
+    public string Address { get; private set; } = default!;
+    public double Lat { get; private set; }
+    public double Lon { get; private set; }
 
-    public string? CrewId  { get; private set; }
+    public string? CrewId { get; private set; }
 
     public WorkOrderStatus Status { get; private set; }
 
-    public DateTimeOffset CreatedAt   { get; private set; }
+    public DateTimeOffset CreatedAt { get; private set; }
     public DateTimeOffset? AssignedAt { get; private set; }
     public DateTimeOffset? CompletedAt { get; private set; }
     public DateTimeOffset? CancelledAt { get; private set; }
@@ -42,15 +43,15 @@ public sealed class WorkOrder : AggregateRoot<Guid>
         double lon,
         DateTimeOffset createdAt)
     {
-        Id       = id;
+        Id = id;
         TenantId = tenantId;
         TicketId = ticketId;
         WorkType = workType;
-        Address  = address;
-        Lat      = lat;
-        Lon      = lon;
+        Address = address;
+        Lat = lat;
+        Lon = lon;
         CreatedAt = createdAt;
-        Status    = WorkOrderStatus.Pending;
+        Status = WorkOrderStatus.Pending;
     }
 
     public static WorkOrder CreateFromTicket(
@@ -85,8 +86,8 @@ public sealed class WorkOrder : AggregateRoot<Guid>
         if (string.IsNullOrWhiteSpace(crewId))
             throw new ArgumentException("CrewId is required.", nameof(crewId));
 
-        CrewId     = crewId;
-        Status     = WorkOrderStatus.Assigned;
+        CrewId = crewId;
+        Status = WorkOrderStatus.Assigned;
         AssignedAt = assignedAt;
     }
 
@@ -95,7 +96,7 @@ public sealed class WorkOrder : AggregateRoot<Guid>
         if (Status is not WorkOrderStatus.Assigned and not WorkOrderStatus.InProgress)
             throw new InvalidOperationException("Only assigned or in-progress work orders can be completed.");
 
-        Status      = WorkOrderStatus.Completed;
+        Status = WorkOrderStatus.Completed;
         CompletedAt = completedAt;
     }
 
@@ -104,7 +105,7 @@ public sealed class WorkOrder : AggregateRoot<Guid>
         if (Status == WorkOrderStatus.Completed)
             throw new InvalidOperationException("Completed work orders cannot be cancelled.");
 
-        Status      = WorkOrderStatus.Cancelled;
+        Status = WorkOrderStatus.Cancelled;
         CancelledAt = cancelledAt;
     }
 }

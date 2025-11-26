@@ -9,11 +9,11 @@ namespace SchedulingSvc.Application.WorkOrders.Commands;
 public sealed class CreateWorkOrderCommand : IRequest<Guid>, ITenantScopedRequest
 {
     public string TenantId { get; set; } = default!;
-    public Guid TicketId   { get; init; }
+    public Guid TicketId { get; init; }
     public string WorkType { get; init; } = default!;
-    public string Address  { get; init; } = default!;
-    public double Lat      { get; init; }
-    public double Lon      { get; init; }
+    public string Address { get; init; } = default!;
+    public double Lat { get; init; }
+    public double Lon { get; init; }
 }
 
 public sealed class CreateWorkOrderCommandHandler
@@ -27,7 +27,7 @@ public sealed class CreateWorkOrderCommandHandler
         IDateTime clock)
     {
         _repository = repository;
-        _clock      = clock;
+        _clock = clock;
     }
 
     public async Task<Guid> Handle(CreateWorkOrderCommand request, CancellationToken ct)

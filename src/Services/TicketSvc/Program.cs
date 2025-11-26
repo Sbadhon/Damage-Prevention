@@ -6,11 +6,14 @@ using TicketSvc.Domain.Abstractions;
 using TicketSvc.Domain.Events;
 using TicketSvc.Infrastructure.Events;
 using TicketSvc.Infrastructure.Tickets;
+using MassTransit;
 using Microsoft.Extensions.DependencyInjection;
 using TicketSvc.Api.Middleware;
 using TicketSvc.Api.Tenancy;
 using TicketSvc.Application.Common.Behaviors;
 using TicketSvc.Application.Common.Tenancy;
+using TicketSvc.Infrastructure.Outbox;
+
 
 namespace TicketSvc;
 
@@ -50,12 +53,25 @@ public class Program
         builder.Services.AddScoped<ITenantProvider, HttpTenantProvider>();
         builder.Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(TenantBehavior<,>));
 
-        // Repository
+        // Ticket repository
         builder.Services.AddSingleton<ITicketRepository, InMemoryTicketRepository>();
 
-        // Bind TicketEvents options
-        builder.Services.Configure<TicketEventsOptions>(
-            builder.Configuration.GetSection("TicketEvents"));
+        // Outbox repository (for integration events)
+        builder.Services.AddSingleton<IOutboxRepository, InMemoryOutboxRepository>();
+
+        builder.Services.AddMassTransit(x =>
+        {
+            // No consumers in TicketSvc, it's just a publisher
+            x.UsingRabbitMq((context, cfg) =>
+            {
+                cfg.Host("localhost", "/", h =>
+                {
+                    h.Username("guest");
+                    h.Password("guest");
+                });
+            });
+        });
+
 
         // Use options to choose which publisher to register,
         // but let DI construct the publisher itself
@@ -74,7 +90,7 @@ public class Program
         {
             builder.Services.AddSingleton<ITicketEventPublisher, NoOpTicketEventPublisher>();
         }
-
+        builder.Services.AddHostedService<OutboxDispatcher>();
         var app = builder.Build();
 
         if (app.Environment.IsDevelopment())

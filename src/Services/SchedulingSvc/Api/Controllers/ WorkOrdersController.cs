@@ -27,9 +27,9 @@ public sealed class WorkOrdersController : ControllerBase
         {
             TicketId = request.TicketId,
             WorkType = request.WorkType,
-            Address  = request.Address,
-            Lat      = request.Lat,
-            Lon      = request.Lon
+            Address = request.Address,
+            Lat = request.Lat,
+            Lon = request.Lon
         };
 
         var id = await _sender.Send(cmd, ct);
@@ -72,7 +72,7 @@ public sealed class WorkOrdersController : ControllerBase
         var query = new ListWorkOrdersQuery
         {
             PageNumber = pageNumber,
-            PageSize   = pageSize
+            PageSize = pageSize
         };
 
         var result = await _sender.Send(query, ct);
@@ -107,7 +107,7 @@ public sealed class WorkOrdersController : ControllerBase
         var cmd = new AssignCrewCommand
         {
             WorkOrderId = id,
-            CrewId      = crewId
+            CrewId = crewId
         };
 
         await _sender.Send(cmd, ct);

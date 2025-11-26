@@ -1,4 +1,5 @@
-using SharedKernel;
+using SharedKernel.Domain.Entities;
+using SharedKernel.Tenancy;
 
 namespace TicketSvc.Domain.Tickets;
 
@@ -13,16 +14,16 @@ public enum TicketStatus
 
 public sealed class Ticket : AggregateRoot<Guid>
 {
-    public string TenantId { get; private set; } = default!;
+    public TenantId TenantId { get; private set; }
     public string WorkType { get; private set; } = default!;
     public string Address { get; private set; } = default!;
     public string Description { get; init; } = default!;
     public double Lat { get; private set; }
-    public double Lon      { get; private set; }
+    public double Lon { get; private set; }
 
     public TicketStatus Status { get; private set; }
 
-    public DateTimeOffset CreatedAt    { get; private set; }
+    public DateTimeOffset CreatedAt { get; private set; }
     public DateTimeOffset? SubmittedAt { get; private set; }
     public DateTimeOffset? CompletedAt { get; private set; }
     public DateTimeOffset? CancelledAt { get; private set; }
@@ -34,7 +35,7 @@ public sealed class Ticket : AggregateRoot<Guid>
 
     private Ticket(
         Guid id,
-        string tenantId,
+        TenantId tenantId,
         string workType,
         string address,
         string description,
@@ -42,19 +43,19 @@ public sealed class Ticket : AggregateRoot<Guid>
         double lon,
         DateTimeOffset createdAt)
     {
-        Id       = id;
+        Id = id;
         TenantId = tenantId;
         WorkType = workType;
-        Address  = address;
+        Address = address;
         Description = description;
-        Lat      = lat;
-        Lon      = lon;
+        Lat = lat;
+        Lon = lon;
         CreatedAt = createdAt;
-        Status    = TicketStatus.Draft;
+        Status = TicketStatus.Draft;
     }
 
     public static Ticket CreateDraft(
-        string tenantId,
+        TenantId tenantId,
         string workType,
         string address,
         string description,
@@ -62,7 +63,7 @@ public sealed class Ticket : AggregateRoot<Guid>
         double lon,
         DateTimeOffset createdAt)
     {
-        if (string.IsNullOrWhiteSpace(tenantId))
+        if (string.IsNullOrWhiteSpace(tenantId.Value))
             throw new ArgumentException("TenantId is required.", nameof(tenantId));
 
         if (string.IsNullOrWhiteSpace(workType))
@@ -88,7 +89,7 @@ public sealed class Ticket : AggregateRoot<Guid>
         if (Status != TicketStatus.Draft)
             throw new InvalidOperationException("Only draft tickets can be submitted.");
 
-        Status      = TicketStatus.Submitted;
+        Status = TicketStatus.Submitted;
         SubmittedAt = submittedAt;
     }
 
@@ -97,7 +98,7 @@ public sealed class Ticket : AggregateRoot<Guid>
         if (Status is not TicketStatus.Submitted and not TicketStatus.Assigned)
             throw new InvalidOperationException("Only submitted or assigned tickets can be completed.");
 
-        Status      = TicketStatus.Completed;
+        Status = TicketStatus.Completed;
         CompletedAt = completedAt;
     }
 
@@ -106,7 +107,7 @@ public sealed class Ticket : AggregateRoot<Guid>
         if (Status == TicketStatus.Completed)
             throw new InvalidOperationException("Completed tickets cannot be cancelled.");
 
-        Status      = TicketStatus.Cancelled;
+        Status = TicketStatus.Cancelled;
         CancelledAt = cancelledAt;
     }
 }

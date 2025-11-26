@@ -5,7 +5,7 @@ namespace SchedulingSvc.Api.Middleware;
 
 public sealed class TenantResolutionMiddleware
 {
-    public const string TenantItemKey    = "__tenantId";
+    public const string TenantItemKey = "__tenantId";
     public const string TenantHeaderName = "X-Tenant-Id";
 
     private readonly RequestDelegate _next;

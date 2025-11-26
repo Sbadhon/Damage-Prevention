@@ -1,4 +1,4 @@
-using SharedKernel;
+using SharedKernel.Domain.Entities;
 
 namespace SchedulingSvc.Domain.Assignments;
 
@@ -14,20 +14,20 @@ public sealed class WorkAssignment : AggregateRoot<Guid>
 {
     public Guid TicketId { get; private set; }
     public string Region { get; private set; } = default!;
-    public string Crew   { get; private set; } = default!;
+    public string Crew { get; private set; } = default!;
     public AssignmentStatus Status { get; private set; }
     public DateTimeOffset CreatedAt { get; private set; }
+    public Exception? Id { get; internal set; }
 
     private WorkAssignment() { }
 
     private WorkAssignment(Guid id, Guid ticketId, string region, string crew, DateTimeOffset createdAt)
     {
-        Id        = id;
-        TicketId  = ticketId;
-        Region    = region;
-        Crew      = crew;
+        TicketId = ticketId;
+        Region = region;
+        Crew = crew;
         CreatedAt = createdAt;
-        Status    = AssignmentStatus.Pending;
+        Status = AssignmentStatus.Pending;
     }
 
     public static WorkAssignment CreateForTicket(Guid ticketId, string region, string crew, DateTimeOffset createdAt)
@@ -40,4 +40,8 @@ public sealed class WorkAssignment : AggregateRoot<Guid>
 
         Status = AssignmentStatus.Assigned;
     }
+}
+
+public class AggregateRoot<T>
+{
 }

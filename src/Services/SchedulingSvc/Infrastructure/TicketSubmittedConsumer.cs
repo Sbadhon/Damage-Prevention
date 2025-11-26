@@ -1,111 +1,44 @@
-using System.Text.Json;
-using Confluent.Kafka;
+using System.Threading.Tasks;
 using Contracts.Tickets;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
+using MassTransit;
+using MediatR;
 using Microsoft.Extensions.Logging;
-using SchedulingSvc.Domain.Assignments;
+using SchedulingSvc.Application.WorkOrders.Commands;
 
-namespace SchedulingSvc.Infrastructure;
+namespace SchedulingSvc.Infrastructure.Messaging;
 
-public class TicketSubmittedConsumer : BackgroundService
+public sealed class TicketSubmittedConsumer : IConsumer<TicketSubmittedEvent>
 {
     private readonly ILogger<TicketSubmittedConsumer> _logger;
-    private readonly IServiceProvider _services;
-    private readonly string _bootstrapServers;
-    private readonly string _topic;
+    private readonly ISender _sender;
 
     public TicketSubmittedConsumer(
         ILogger<TicketSubmittedConsumer> logger,
-        IServiceProvider services,
-        IConfiguration config)
+        ISender sender)
     {
         _logger = logger;
-        _services = services;
-
-        var kafkaSection = config.GetSection("Kafka");
-        _bootstrapServers = kafkaSection["BootstrapServers"] ?? "localhost:9092";
-        _topic = kafkaSection["TicketSubmittedTopic"] ?? "ticket-submitted";
+        _sender = sender;
     }
 
-    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+    public async Task Consume(ConsumeContext<TicketSubmittedEvent> context)
     {
-        var consumerConfig = new ConsumerConfig
+        var evt = context.Message;
+
+        _logger.LogInformation(
+            "SchedulingSvc (RabbitMQ) received TicketSubmittedEvent for TicketId={TicketId} Tenant={TenantId}",
+            evt.TicketId,
+            evt.TenantId);
+
+        var cmd = new CreateWorkOrderCommand
         {
-            BootstrapServers = _bootstrapServers,
-            GroupId = "scheduling-svc",
-            AutoOffsetReset = AutoOffsetReset.Earliest
+            TenantId = evt.TenantId,
+            TicketId = evt.TicketId,
+            WorkType = evt.WorkType,
+            Address = evt.Address,
+            Lat = evt.Lat,
+            Lon = evt.Lon
         };
 
-        using var consumer = new ConsumerBuilder<string, string>(consumerConfig).Build();
-        consumer.Subscribe(_topic);
-
-        _logger.LogInformation("TicketSubmittedConsumer subscribed to topic {Topic}", _topic);
-
-        try
-        {
-            while (!stoppingToken.IsCancellationRequested)
-            {
-                ConsumeResult<string, string>? result;
-
-                try
-                {
-                    result = consumer.Consume(stoppingToken);
-                }
-                catch (ConsumeException ex)
-                {
-                    _logger.LogError(ex, "Kafka consume error");
-                    continue;
-                }
-
-                if (result is null)
-                    continue;
-
-                TicketSubmittedEvent? evt = null;
-
-                try
-                {
-                    evt = JsonSerializer.Deserialize<TicketSubmittedEvent>(result.Message.Value);
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex, "Failed to deserialize TicketSubmittedEvent");
-                    continue;
-                }
-
-                if (evt is null)
-                    continue;
-
-                _logger.LogInformation("Received TicketSubmittedEvent for TicketId={TicketId}", evt.TicketId);
-
-                // Handle with a scoped DbContext
-                using var scope = _services.CreateScope();
-                var db = scope.ServiceProvider.GetRequiredService<SchedulingDbContext>();
-
-                // Simple assignment logic for now: hard-code region+crew
-                var assignment = WorkAssignment.CreateForTicket(
-                    evt.TicketId,
-                    region: "North-Region",
-                    crew: "Crew-Alpha",
-                    createdAt: evt.SubmittedAt
-                );
-
-                assignment.MarkAssigned();
-
-                db.Assignments.Add(assignment);
-                await db.SaveChangesAsync(stoppingToken);
-
-                _logger.LogInformation(
-                    "Saved WorkAssignment {AssignmentId} for Ticket {TicketId}",
-                    assignment.Id,
-                    assignment.TicketId);
-            }
-        }
-        finally
-        {
-            consumer.Close();
-        }
+        await _sender.Send(cmd, context.CancellationToken);
     }
-
 }
