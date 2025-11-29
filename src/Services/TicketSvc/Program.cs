@@ -69,27 +69,10 @@ public class Program
                     h.Username("guest");
                     h.Password("guest");
                 });
+                cfg.ConfigureEndpoints(context);
             });
         });
 
-
-        // Use options to choose which publisher to register,
-        // but let DI construct the publisher itself
-        var ticketEvents = new TicketEventsOptions();
-        builder.Configuration.GetSection("TicketEvents").Bind(ticketEvents);
-
-        if (ticketEvents.UseAzureServiceBus)
-        {
-            builder.Services.AddSingleton<ITicketEventPublisher, AzureServiceBusTicketEventPublisher>();
-        }
-        else if (ticketEvents.UseKafka)
-        {
-            builder.Services.AddSingleton<ITicketEventPublisher, KafkaTicketEventPublisher>();
-        }
-        else
-        {
-            builder.Services.AddSingleton<ITicketEventPublisher, NoOpTicketEventPublisher>();
-        }
         builder.Services.AddHostedService<OutboxDispatcher>();
         var app = builder.Build();
 
@@ -103,8 +86,6 @@ public class Program
         app.UseMiddleware<TenantResolutionMiddleware>();
 
         app.UseRouting();
-        // later: app.UseAuthentication(); app.UseAuthorization();
-
         app.UseCors("AllowFE");
         app.MapControllers();
 

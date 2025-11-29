@@ -8,7 +8,7 @@ interface RiskBadgeProps {
 
 export const RiskBadge: React.FC<RiskBadgeProps> = ({ level }) => {
   const levelStyles: { [key in RiskLevel]: string } = {
-    [RiskLevel.Low]: 'bg-green-500/20 text-green-300 border border-green-500/30',
+    [RiskLevel.Low]: 'bg-green-100 text-green-800 border border-green-300',
     [RiskLevel.Medium]: 'bg-yellow-500/20 text-yellow-300 border border-yellow-500/30',
     [RiskLevel.High]: 'bg-orange-500/20 text-orange-300 border border-orange-500/30',
     [RiskLevel.Critical]: 'bg-red-500/20 text-red-300 border border-red-500/30',

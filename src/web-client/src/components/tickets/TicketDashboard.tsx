@@ -18,6 +18,9 @@ import {
   selectTicketsState,
   setPage,
 } from '../../state/ticketsSlice';
+import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
+import 'leaflet/dist/leaflet.css';
+import { TicketStatusBadge } from '../common/TicketStatusBadge';
 
 const TicketDetails: React.FC<{
   ticket: Ticket;
@@ -51,14 +54,7 @@ const TicketDetails: React.FC<{
     <div className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
-          <h4 className="font-bold text-lg text-gray-900 dark:text-white mb-3">
-            Ticket Details
-          </h4>
           <div className="space-y-2 text-gray-600 dark:text-gray-300">
-            <p>
-              <strong className="text-gray-500 dark:text-gray-400">ID:</strong>{' '}
-              {ticket.ticketId}
-            </p>
             <p>
               <strong className="text-gray-500 dark:text-gray-400">
                 Description:
@@ -79,25 +75,30 @@ const TicketDetails: React.FC<{
             </p>
             <p>
               <strong className="text-gray-500 dark:text-gray-400">
+                Lat:
+              </strong>{' '}
+              {ticket.lat}
+            </p>
+            <p>
+              <strong className="text-gray-500 dark:text-gray-400">
+                Lon:
+              </strong>{' '}
+              {ticket.lon}
+            </p>
+            <p>
+              <strong className="text-gray-500 dark:text-gray-400">
                 Created At:
               </strong>{' '}
               {new Date(ticket.createdAt).toLocaleString()}
             </p>
-          </div>
-        </div>
-        <div>
-          <h4 className="font-bold text-lg text-gray-900 dark:text-white mb-3">
-            Status &amp; Risk
-          </h4>
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">
-                Status
-              </label>
+            <div className="flex items-center gap-2 mb-1">
+              <strong className="text-gray-500 dark:text-gray-400">
+                Status:
+              </strong>{' '}
               <select
                 value={currentStatus}
                 onChange={handleStatusChange}
-                className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm"
+                className="w-full bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:ring-teal-500 focus:border-teal-500 text-sm p-2.5"
               >
                 {Object.values(TicketStatus).map((status) => (
                   <option key={status} value={status}>
@@ -106,11 +107,15 @@ const TicketDetails: React.FC<{
                 ))}
               </select>
             </div>
+          </div>
+        </div>
+        <div>
+          <div className="space-y-4">
             <div>
-              <div className="flex items-center justify-between mb-1">
-                <span className="text-sm font-medium text-gray-500 dark:text-gray-400">
-                  Risk
-                </span>
+              <div className="flex items-center gap-2 mb-1">
+                <strong className="text-gray-500 dark:text-gray-400">
+                  Risk:
+                </strong>{' '}
                 {risk && <RiskBadge level={risk.level} />}
               </div>
               {risk ? (
@@ -122,6 +127,25 @@ const TicketDetails: React.FC<{
                 <p className="text-sm text-gray-500 dark:text-gray-400">
                   Loading risk assessment…
                 </p>
+              )}
+              {/* MAP — Only show when lat/lon are valid */}
+              {ticket.lat !== 0 && ticket.lon !== 0 && (
+                <div className="h-64 w-full mt-4">
+                  <MapContainer
+                    center={[ticket.lat, ticket.lon]}
+                    zoom={15}
+                    scrollWheelZoom={false}
+                    className="h-full w-full rounded-md"
+                  >
+                    <TileLayer
+                      url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                      attribution='&copy; OpenStreetMap'
+                    />
+                    <Marker position={[ticket.lat, ticket.lon]}>
+                      <Popup>{ticket.address}</Popup>
+                    </Marker>
+                  </MapContainer>
+                </div>
               )}
             </div>
           </div>
@@ -170,12 +194,12 @@ export const TicketDashboard: React.FC = () => {
   const handleAddTicket = async (
     newTicketData: Omit<
       Ticket,
-      'id' | 'status' | 'createdAt' | 'lat' | 'lon'
+      'ticketId' | 'status' | 'createdAt'
     >
   ) => {
     await dispatch(createTicketThunk(newTicketData));
   };
-
+  
   const filteredTickets = tickets.filter((t: Ticket) => {
     const matchesStatus =
       statusFilter === 'All' ? true : t.status === statusFilter;
@@ -315,7 +339,7 @@ export const TicketDashboard: React.FC = () => {
                       {ticket.address}
                     </td>
                     <td className="px-4 py-3 text-gray-700 dark:text-gray-200">
-                      {ticket.status}
+                       <TicketStatusBadge level={ticket.status} />
                     </td>
                     <td className="px-4 py-3 text-right">
                       <button

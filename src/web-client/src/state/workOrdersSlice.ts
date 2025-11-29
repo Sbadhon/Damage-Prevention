@@ -1,7 +1,7 @@
-import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { WorkOrder, WorkOrderStatus, PagedResponse } from '../types';
-import api from '../services/api';
-import type { RootState } from '../store';
+import { createAsyncThunk, createSlice, PayloadAction } from "@reduxjs/toolkit";
+import { WorkOrder, WorkOrderStatus, PagedResponse } from "../types";
+import api from "../services/api";
+import type { RootState } from "../store";
 
 export interface WorkOrdersState {
   items: WorkOrder[];
@@ -23,28 +23,32 @@ const initialState: WorkOrdersState = {
 export const fetchWorkOrdersPage = createAsyncThunk<
   PagedResponse<WorkOrder>,
   { pageNumber: number; pageSize?: number }
->('workOrders/fetchPage', async ({ pageNumber, pageSize }, thunkApi) => {
+>("workOrders/fetchPage", async ({ pageNumber, pageSize }, thunkApi) => {
   const state = thunkApi.getState() as RootState;
   const effectivePageSize = pageSize ?? state.workOrders.pageSize;
-
-  const response = await api.listWorkOrders({
-    pageNumber,
-    pageSize: effectivePageSize,
-  });
-
+  const response = await api.listWorkOrders({ pageNumber, pageSize: effectivePageSize });
   return response;
 });
 
 export const updateWorkOrderStatusThunk = createAsyncThunk<
-  { workOrderId: string; newStatus: WorkOrderStatus },
+  WorkOrder,
   { workOrderId: string; newStatus: WorkOrderStatus }
->('workOrders/updateStatus', async ({ workOrderId, newStatus }) => {
-  await api.updateWorkOrderStatus(workOrderId, newStatus);
-  return { workOrderId, newStatus };
+>("workOrders/updateStatus", async ({ workOrderId, newStatus }) => {
+  const response = await api.updateWorkOrderStatus(workOrderId, newStatus);
+  return response;
+});
+
+// --- Assign Crew Thunk ---
+export const assignCrewThunk = createAsyncThunk<
+  WorkOrder,
+  { workOrderId: string; crewId: string }
+>("workOrders/assignCrew", async ({ workOrderId, crewId }) => {
+  const response = await api.assignCrew(workOrderId, crewId);
+  return response;
 });
 
 const workOrdersSlice = createSlice({
-  name: 'workOrders',
+  name: "workOrders",
   initialState,
   reducers: {
     setPage(state, action: PayloadAction<number>) {
@@ -66,21 +70,21 @@ const workOrdersSlice = createSlice({
       })
       .addCase(fetchWorkOrdersPage.rejected, (state, action) => {
         state.loading = false;
-        state.error =
-          action.error.message ?? 'Failed to load work orders';
+        state.error = action.error.message ?? "Failed to load work orders";
       })
       .addCase(updateWorkOrderStatusThunk.fulfilled, (state, action) => {
-        const { workOrderId, newStatus } = action.payload;
-        const wo = state.items.find((w) => w.id === workOrderId);
-        if (wo) {
-          wo.status = newStatus;
-        }
+        const updatedWO = action.payload;
+        const index = state.items.findIndex((w) => w.workOrderId === updatedWO.workOrderId);
+        if (index !== -1) state.items[index] = updatedWO;
+      })
+      .addCase(assignCrewThunk.fulfilled, (state, action) => {
+        const updatedWO = action.payload;
+        const index = state.items.findIndex((w) => w.workOrderId === updatedWO.workOrderId);
+        if (index !== -1) state.items[index] = updatedWO;
       });
   },
 });
 
 export const { setPage } = workOrdersSlice.actions;
-
 export const selectWorkOrdersState = (state: RootState) => state.workOrders;
-
 export default workOrdersSlice.reducer;

@@ -1,23 +1,27 @@
 using MediatR;
 using SharedKernel;
 using SchedulingSvc.Application.Common.Tenancy;
+using SchedulingSvc.Application.WorkOrders.Dtos;
 using SchedulingSvc.Domain.Abstractions;
 using SchedulingSvc.Domain.WorkOrders;
+using SchedulingSvc.Application.Crew;
 
 namespace SchedulingSvc.Application.WorkOrders.Commands;
 
-public sealed class CreateWorkOrderCommand : IRequest<Guid>, ITenantScopedRequest
+public sealed class CreateWorkOrderCommand : IRequest<WorkOrderDto>, ITenantScopedRequest
 {
     public string TenantId { get; set; } = default!;
     public Guid TicketId { get; init; }
     public string WorkType { get; init; } = default!;
     public string Address { get; init; } = default!;
+    public string? CrewId { get; private set; }
+    public string? CrewName { get; private set; }
     public double Lat { get; init; }
     public double Lon { get; init; }
 }
 
 public sealed class CreateWorkOrderCommandHandler
-    : IRequestHandler<CreateWorkOrderCommand, Guid>
+    : IRequestHandler<CreateWorkOrderCommand, WorkOrderDto>
 {
     private readonly IWorkOrderRepository _repository;
     private readonly IDateTime _clock;
@@ -30,22 +34,22 @@ public sealed class CreateWorkOrderCommandHandler
         _clock = clock;
     }
 
-    public async Task<Guid> Handle(CreateWorkOrderCommand request, CancellationToken ct)
+    public async Task<WorkOrderDto> Handle(CreateWorkOrderCommand request, CancellationToken ct)
     {
         var now = _clock.UtcNow;
 
-        var wo = WorkOrder.CreateFromTicket(
-            request.TenantId,
-            request.TicketId,
-            request.WorkType,
-            request.Address,
-            request.Lat,
-            request.Lon,
-            now);
-
-        await _repository.AddAsync(wo, ct);
+        var workOrder = WorkOrder.CreateFromTicket(
+            tenantId:  request.TenantId,
+            ticketId:  request.TicketId,
+            workType:  request.WorkType,
+            address:   request.Address,
+            lat:       request.Lat,
+            lon:       request.Lon,
+            createdAt: now
+        );
+        await _repository.AddAsync(workOrder, ct);
         await _repository.SaveChangesAsync(ct);
 
-        return wo.Id;
+        return WorkOrderDto.FromEntity(workOrder);
     }
 }

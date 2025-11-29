@@ -1,4 +1,4 @@
-import axios from 'axios';
+import axios from "axios";
 import {
   Ticket,
   TicketStatus,
@@ -6,22 +6,22 @@ import {
   WorkOrderStatus,
   RiskAssessment,
   PagedResponse,
-  Crew
-} from '../types';
+  Crew,
+} from "../types";
 
 // ---- Base URLs & Tenant ----
 
 const TICKET_API_BASE =
-  import.meta.env.VITE_TICKET_API_URL ?? 'https://localhost:5030';
+  import.meta.env.VITE_TICKET_API_URL ?? "https://localhost:5030";
 const SCHEDULING_API_BASE =
-  import.meta.env.VITE_SCHEDULING_API_URL ?? 'https://localhost:5002';
+  import.meta.env.VITE_SCHEDULING_API_URL ?? "https://localhost:5076";
 const RISK_API_BASE =
-  import.meta.env.VITE_RISK_API_URL ?? 'https://localhost:5003';
+  import.meta.env.VITE_RISK_API_URL ?? "https://localhost:5003";
 
-const TENANT_ID = import.meta.env.VITE_TENANT_ID ?? 'acme-corp';
+const TENANT_ID = import.meta.env.VITE_TENANT_ID ?? "acme-corp";
 
 const tenantHeaders = {
-  'X-Tenant-Id': TENANT_ID,
+  "X-Tenant-Id": TENANT_ID,
 };
 
 // Axios instances per bounded context (optional but clean)
@@ -53,13 +53,10 @@ export interface ListParams {
 const api = {
   // --------- Tickets ---------
 
-  listTickets: async (
-    params: ListParams
-  ): Promise<PagedResponse<Ticket>> => {
-    const res = await ticketClient.get<PagedResponse<Ticket>>(
-      '/api/tickets',
-      { params }
-    );
+  listTickets: async (params: ListParams): Promise<PagedResponse<Ticket>> => {
+    const res = await ticketClient.get<PagedResponse<Ticket>>("/api/tickets", {
+      params,
+    });
     return res.data;
   },
 
@@ -69,21 +66,17 @@ const api = {
   },
 
   createTicket: async (
-    newTicket: Omit<Ticket, 'id' | 'status' | 'createdAt' | 'lat' | 'lon'>
+    newTicket: Omit<Ticket, "ticketId" | "status" | "createdAt">
   ): Promise<Ticket> => {
-    // Adjust body → backend SubmitTicketRequest shape as needed
     const body = {
       workType: newTicket.workType,
       address: newTicket.address,
-      // For now, we send description as-is if your backend supports it
       description: newTicket.description,
-      lat: 0,
-      lon: 0,
+      lat: newTicket.lat ?? 0,
+      lon: newTicket.lon ?? 0,
     };
 
-    const res = await ticketClient.post('/api/tickets', body);
-    // If backend returns only { ticketId, status }, you can do a second GET here
-    // or adapt to your DTO. For now, we assume it returns a full Ticket.
+    const res = await ticketClient.post("/api/tickets", body);
     return res.data as Ticket;
   },
 
@@ -92,19 +85,24 @@ const api = {
     newStatus: TicketStatus,
     reason?: string // optional, for cancellation
   ): Promise<void> => {
-    console.log(ticketId, newStatus)
+    console.log(ticketId, newStatus);
     switch (newStatus) {
       case TicketStatus.Completed: // 3
         await ticketClient.post(`/api/tickets/${ticketId}/complete`);
         break;
       case TicketStatus.Cancelled: // 4
-        await ticketClient.post(`/api/tickets/${ticketId}/cancel`, reason ? reason : null);
+        await ticketClient.post(
+          `/api/tickets/${ticketId}/cancel`,
+          reason ? reason : null
+        );
         break;
       default:
-        await ticketClient.patch(`/api/tickets/${ticketId}`, { status: newStatus });
+        await ticketClient.patch(`/api/tickets/${ticketId}`, {
+          status: newStatus,
+        });
         break;
     }
-  },  
+  },
 
   // --------- Work Orders (SchedulingSvc) ---------
 
@@ -112,7 +110,7 @@ const api = {
     params: ListParams
   ): Promise<PagedResponse<WorkOrder>> => {
     const res = await schedulingClient.get<PagedResponse<WorkOrder>>(
-      '/api/workorders',
+      "/api/workorders",
       { params }
     );
     return res.data;
@@ -121,10 +119,14 @@ const api = {
   updateWorkOrderStatus: async (
     workOrderId: string,
     newStatus: WorkOrderStatus
-  ): Promise<void> => {
-    await schedulingClient.patch(`/api/workorders/${workOrderId}/status`, {
-      status: newStatus,
-    });
+  ): Promise<WorkOrder> => {
+    const res = await schedulingClient.patch(
+      `/api/workorders/${workOrderId}/status`,
+      {
+        status: newStatus,
+      }
+    );
+    return res.data;
   },
 
   // --------- Risk (RiskSvc) ---------
@@ -133,7 +135,7 @@ const api = {
     params: ListParams
   ): Promise<PagedResponse<RiskAssessment>> => {
     const res = await riskClient.get<PagedResponse<RiskAssessment>>(
-      '/api/risk',
+      "/api/risk",
       { params }
     );
     return res.data;
@@ -146,10 +148,19 @@ const api = {
     return res.data;
   },
 
-  // --------- Crews (optional, from SchedulingSvc or another svc) ---------
-
   listCrews: async (): Promise<Crew[]> => {
-    const res = await schedulingClient.get<Crew[]>('/api/crews');
+    const res = await schedulingClient.get<Crew[]>("/api/workorders/crews");
+    return res.data;
+  },
+
+  assignCrew: async (
+    workOrderId: string,
+    crewId: string
+  ): Promise<WorkOrder> => {
+    const res = await schedulingClient.put<WorkOrder>(
+      `/api/workorders/${workOrderId}/assign-crew`,
+      { crewId }
+    );
     return res.data;
   },
 };

@@ -1,12 +1,10 @@
-import React, { useEffect } from 'react';
-import { Pagination } from '../common/Pagination';
-import { RiskBadge } from '../common/RiskBadge';
-import { useAppDispatch, useAppSelector } from '../../hooks';
-import {
-  fetchRiskPage,
-  selectRiskState,
-  setPage,
-} from '../../state/riskSlice';
+import React, { useEffect } from "react";
+import { Pagination } from "../common/Pagination";
+import { RiskBadge } from "../common/RiskBadge";
+import { useAppDispatch, useAppSelector } from "../../hooks";
+import { fetchRiskPage, selectRiskState, setPage } from "../../state/riskSlice";
+import { RiskLevel } from "../../types";
+import { DashboardSummary } from "../common/DashboardSummary";
 
 export const RiskDashboard: React.FC = () => {
   const dispatch = useAppDispatch();
@@ -22,6 +20,29 @@ export const RiskDashboard: React.FC = () => {
     dispatch(fetchRiskPage({ pageNumber: newPage, pageSize }));
   };
 
+  const dashboardSummaryStats = {
+    highRisk: {
+      title: "High Risk",
+      value: items.filter((r) => r.level === RiskLevel.High).length,
+      color: "bg-orange-100 dark:bg-orange-500/20",
+    },
+    criticalRisk: {
+      title: "Critical Risk",
+      value: items.filter((r) => r.level === RiskLevel.Critical).length,
+      color: "bg-red-100 dark:bg-red-500/20",
+    },
+    mediumRisk: {
+      title: "Medium Risk",
+      value: items.filter((r) => r.level === RiskLevel.Medium).length,
+      color: "bg-yellow-100 dark:bg-yellow-500/20",
+    },
+    lowRisk: {
+      title: "Low Risk",
+      value: items.filter((r) => r.level === RiskLevel.Low).length,
+      color: "bg-green-100 dark:bg-green-500/20",
+    },
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between mb-4">
@@ -34,7 +55,9 @@ export const RiskDashboard: React.FC = () => {
           </p>
         </div>
       </div>
-
+      {dashboardSummaryStats && (
+        <DashboardSummary stats={dashboardSummaryStats} />
+      )}
       <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
           {loading ? (

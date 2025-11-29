@@ -1,5 +1,5 @@
 using Microsoft.EntityFrameworkCore;
-using SchedulingSvc.Domain.Assignments;
+using SchedulingSvc.Domain.WorkOrders;
 
 namespace SchedulingSvc.Infrastructure;
 
@@ -10,22 +10,54 @@ public class SchedulingDbContext : DbContext
     {
     }
 
-    public DbSet<WorkAssignment> Assignments => Set<WorkAssignment>();
+    public DbSet<WorkOrder> WorkOrders => Set<WorkOrder>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
 
-        var assignment = modelBuilder.Entity<WorkAssignment>();
+        var wo = modelBuilder.Entity<WorkOrder>();
 
-        assignment.ToTable("WorkAssignments");
+        wo.ToTable("WorkOrders");
 
-        assignment.HasKey(a => a.Id);
+        wo.HasKey(w => w.Id);
 
-        assignment.Property(a => a.TicketId).IsRequired();
-        assignment.Property(a => a.Region).HasMaxLength(100);
-        assignment.Property(a => a.Crew).HasMaxLength(100);
-        assignment.Property(a => a.Status).HasConversion<int>();
-        assignment.Property(a => a.CreatedAt);
+        wo.Property(w => w.Id)
+            .ValueGeneratedNever();
+
+        wo.Property(w => w.TenantId)
+            .IsRequired()
+            .HasMaxLength(64);
+
+        wo.Property(w => w.TicketId)
+            .IsRequired();
+
+        wo.Property(w => w.WorkType)
+            .IsRequired()
+            .HasMaxLength(200);
+
+        wo.Property(w => w.Address)
+            .IsRequired()
+            .HasMaxLength(400);
+
+        wo.Property(w => w.Lat);
+        wo.Property(w => w.Lon);
+
+        wo.Property(w => w.CrewId)
+            .HasMaxLength(64);
+
+        wo.Property(w => w.CrewName)
+            .HasMaxLength(200);
+
+        wo.Property(w => w.Status)
+            .HasConversion<int>()
+            .IsRequired();
+
+        wo.Property(w => w.CreatedAt)
+            .IsRequired();
+
+        wo.Property(w => w.AssignedAt);
+        wo.Property(w => w.CompletedAt);
+        wo.Property(w => w.CancelledAt);
     }
 }

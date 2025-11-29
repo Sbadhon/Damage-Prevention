@@ -1,13 +1,17 @@
 using MassTransit;
 using MediatR;
+using Microsoft.EntityFrameworkCore;
 using SharedKernel;
 using SharedKernel.Options;
 using SchedulingSvc.Api.Tenancy;
 using SchedulingSvc.Application.Common.Behaviors;
 using SchedulingSvc.Application.Common.Tenancy;
 using SchedulingSvc.Domain.Abstractions;
+using SchedulingSvc.Infrastructure;
 using SchedulingSvc.Infrastructure.Messaging;
 using SchedulingSvc.Infrastructure.WorkOrders;
+using System.Text.Json.Serialization;
+using SchedulingSvc.Api.Middleware;
 
 namespace SchedulingSvc;
 
@@ -30,27 +34,36 @@ public class Program
             });
         });
 
-        // Controllers + Swagger
-        builder.Services.AddControllers();
+        builder.Services.AddControllers()
+        .AddJsonOptions(options =>
+        options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()));
         builder.Services.AddEndpointsApiExplorer();
         builder.Services.AddSwaggerGen();
 
         // MediatR
         builder.Services.AddMediatR(typeof(Program).Assembly);
+
+        // Clock
         builder.Services.AddSingleton<IDateTime, SystemClock>();
 
-        // Tenant plumbing
+        // Tenant pipeline
         builder.Services.AddHttpContextAccessor();
         builder.Services.AddScoped<ITenantProvider, HttpTenantProvider>();
         builder.Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(TenantBehavior<,>));
 
-        // In-memory WorkOrder repo
-        builder.Services.AddSingleton<IWorkOrderRepository, InMemoryWorkOrderRepository>();
+        // EF Core + SQL Server
+        var connString = builder.Configuration.GetConnectionString("SchedulingDatabase")
+                          ?? "Server=localhost,1433;Database=SchedulingDb;User Id=sa;Password=SqlStr0ng!Passw0rd;TrustServerCertificate=True;";
+
+        builder.Services.AddDbContext<SchedulingDbContext>(options =>
+            options.UseSqlServer(connString));
+
+        // Use EF repository instead of in-memory
+        builder.Services.AddScoped<IWorkOrderRepository, EfWorkOrderRepository>();
 
         // MassTransit + RabbitMQ
         builder.Services.AddMassTransit(x =>
         {
-            // Consumer for TicketSubmittedEvent
             x.AddConsumer<TicketSubmittedConsumer>();
 
             x.UsingRabbitMq((context, cfg) =>
@@ -61,19 +74,25 @@ public class Program
                     h.Password("guest");
                 });
 
-                // This wires up a receive endpoint for TicketSubmittedConsumer
                 cfg.ConfigureEndpoints(context);
             });
         });
 
         var app = builder.Build();
 
+        // Ensure DB + table exist
+        using (var scope = app.Services.CreateScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<SchedulingDbContext>();
+            db.Database.EnsureCreated();
+        }
+
         if (app.Environment.IsDevelopment())
         {
             app.UseSwagger();
             app.UseSwaggerUI();
         }
-
+        app.UseMiddleware<TenantResolutionMiddleware>();
         app.UseRouting();
         app.UseCors("AllowFE");
         app.MapControllers();

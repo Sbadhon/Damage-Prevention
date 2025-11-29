@@ -93,6 +93,14 @@ public sealed class Ticket : AggregateRoot<Guid>
         SubmittedAt = submittedAt;
     }
 
+    public void MarkAssigned()
+    {
+        if (Status is TicketStatus.Completed or TicketStatus.Cancelled)
+            throw new InvalidOperationException("Cannot assign a closed ticket.");
+
+        Status = TicketStatus.Assigned;
+    }
+
     public void Complete(DateTimeOffset completedAt)
     {
         if (Status is not TicketStatus.Submitted and not TicketStatus.Assigned)

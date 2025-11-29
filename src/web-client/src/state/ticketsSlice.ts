@@ -49,7 +49,7 @@ export const updateTicketStatusThunk = createAsyncThunk<
 
 export const createTicketThunk = createAsyncThunk<
   Ticket,
-  Omit<Ticket, 'id' | 'status' | 'createdAt' | 'lat' | 'lon'>
+  Omit<Ticket, 'ticketId' | 'status' | 'createdAt'>
 >('tickets/create', async (newTicketData) => {
   const created = await api.createTicket(newTicketData);
   return created;
@@ -117,7 +117,7 @@ function calculateTicketStats(items: Ticket[]): DashboardStats {
 
   for (const t of items) {
     switch (t.status) {
-      case 'Submitted' as TicketStatus:
+      case TicketStatus.Open:
         ticketsStats.open += 1;
         break;
       case TicketStatus.InProgress:

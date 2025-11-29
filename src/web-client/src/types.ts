@@ -32,7 +32,7 @@ export enum TicketStatus {
   }
   
   export interface WorkOrder {
-    id: string;
+    workOrderId: string;
     ticketId: string;
     crewId?: string;
     crewName?: string;
@@ -53,11 +53,11 @@ export enum TicketStatus {
     lon: number;
     assessedAt: string;
   }
-  
+
   export interface Crew {
-      id: string;
-      name: string;
-      specialty: string;
+    crewId: string;
+    crewName: string;
+    specialty: string;
   }
   
   export interface PagedResponse<T> {

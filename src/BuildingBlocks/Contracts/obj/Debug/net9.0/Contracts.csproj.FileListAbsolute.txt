@@ -5,8 +5,8 @@
 /Users/sohana/Documents/damage-prevention-saas/src/BuildingBlocks/Contracts/obj/Debug/net9.0/Contracts.AssemblyInfoInputs.cache
 /Users/sohana/Documents/damage-prevention-saas/src/BuildingBlocks/Contracts/obj/Debug/net9.0/Contracts.AssemblyInfo.cs
 /Users/sohana/Documents/damage-prevention-saas/src/BuildingBlocks/Contracts/obj/Debug/net9.0/Contracts.csproj.CoreCompileInputs.cache
+/Users/sohana/Documents/damage-prevention-saas/src/BuildingBlocks/Contracts/obj/Debug/net9.0/Contracts.sourcelink.json
 /Users/sohana/Documents/damage-prevention-saas/src/BuildingBlocks/Contracts/obj/Debug/net9.0/Contracts.dll
 /Users/sohana/Documents/damage-prevention-saas/src/BuildingBlocks/Contracts/obj/Debug/net9.0/refint/Contracts.dll
 /Users/sohana/Documents/damage-prevention-saas/src/BuildingBlocks/Contracts/obj/Debug/net9.0/Contracts.pdb
 /Users/sohana/Documents/damage-prevention-saas/src/BuildingBlocks/Contracts/obj/Debug/net9.0/ref/Contracts.dll
-/Users/sohana/Documents/damage-prevention-saas/src/BuildingBlocks/Contracts/obj/Debug/net9.0/Contracts.sourcelink.json

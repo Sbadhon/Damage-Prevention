@@ -24,6 +24,8 @@ public sealed class WorkOrder : AggregateRoot<Guid>
 
     public string? CrewId { get; private set; }
 
+    public string? CrewName { get; private set; }
+
     public WorkOrderStatus Status { get; private set; }
 
     public DateTimeOffset CreatedAt { get; private set; }
@@ -78,7 +80,7 @@ public sealed class WorkOrder : AggregateRoot<Guid>
         return new WorkOrder(Guid.NewGuid(), tenantId, ticketId, workType, address, lat, lon, createdAt);
     }
 
-    public void AssignCrew(string crewId, DateTimeOffset assignedAt)
+    public void AssignCrew(string crewId, string crewName, DateTimeOffset assignedAt)
     {
         if (Status is WorkOrderStatus.Completed or WorkOrderStatus.Cancelled)
             throw new InvalidOperationException("Cannot assign crew to completed or cancelled work orders.");
@@ -87,6 +89,7 @@ public sealed class WorkOrder : AggregateRoot<Guid>
             throw new ArgumentException("CrewId is required.", nameof(crewId));
 
         CrewId = crewId;
+        CrewName = crewName;
         Status = WorkOrderStatus.Assigned;
         AssignedAt = assignedAt;
     }

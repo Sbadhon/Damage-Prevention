@@ -1,8 +1,11 @@
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using SchedulingSvc.Api.Contracts.WorkOrders;
+using SchedulingSvc.Application.Crew;
 using SchedulingSvc.Application.WorkOrders.Commands;
+using SchedulingSvc.Application.WorkOrders.Dtos;
 using SchedulingSvc.Application.WorkOrders.Queries;
+using SchedulingSvc.Api.Middleware;
 
 namespace SchedulingSvc.Api.Controllers;
 
@@ -17,126 +20,165 @@ public sealed class WorkOrdersController : ControllerBase
         _sender = sender;
     }
 
-    // POST api/workorders
+    // GET api/workorders?pageNumber=1&pageSize=20
+    [HttpGet]
+    public async Task<ActionResult<PagedResponse<WorkOrderResponse>>> List(
+        [FromQuery] int pageNumber = 1,
+        [FromQuery] int pageSize = 20,
+        CancellationToken ct = default)
+    {
+        if (pageNumber <= 0) pageNumber = 1;
+        if (pageSize <= 0 || pageSize > 100) pageSize = 20;
+
+        var query = new ListWorkOrdersQuery
+        {
+            TenantId = HttpContext.GetTenantId(),
+            PageNumber = pageNumber,
+            PageSize = pageSize
+        };
+
+        ListWorkOrdersResult result = await _sender.Send(query, ct);
+
+        var items = result.Items.Select(ToResponse).ToList();
+
+        return Ok(new PagedResponse<WorkOrderResponse>
+        {
+            Items = items,
+            TotalCount = result.TotalCount,
+            PageNumber = result.PageNumber,
+            PageSize = result.PageSize
+        });
+    }
+
+    // GET api/workorders/{id}
+    [HttpGet("{id:guid}")]
+    public async Task<ActionResult<WorkOrderResponse>> GetById(Guid id, CancellationToken ct)
+    {
+        var query = new GetWorkOrderByIdQuery
+        {
+            TenantId = HttpContext.GetTenantId(),
+            WorkOrderId = id
+        };
+
+        WorkOrderDto? dto = await _sender.Send(query, ct);
+
+        if (dto is null)
+            return NotFound();
+
+        return Ok(ToResponse(dto));
+    }
+
     [HttpPost]
-    public async Task<IActionResult> CreateWorkOrder(
-        [FromBody] CreateWorkOrderRequest request,
-        CancellationToken ct)
+    public async Task<ActionResult<WorkOrderResponse>> Create(
+    [FromBody] CreateWorkOrderRequest request,
+    CancellationToken ct)
     {
         var cmd = new CreateWorkOrderCommand
         {
             TicketId = request.TicketId,
+            TenantId = HttpContext.GetTenantId(),
             WorkType = request.WorkType,
             Address = request.Address,
             Lat = request.Lat,
             Lon = request.Lon
         };
 
-        var id = await _sender.Send(cmd, ct);
-        return AcceptedAtAction(nameof(GetById), new { id }, new { WorkOrderId = id });
+        WorkOrderDto dto = await _sender.Send(cmd, ct);
+        var response = ToResponse(dto);
+
+        return CreatedAtAction(
+            nameof(GetById),
+            new { id = response.WorkOrderId },
+            response);
     }
 
-    // GET api/workorders/{id}
-    [HttpGet("{id:guid}")]
-    public async Task<IActionResult> GetById(Guid id, CancellationToken ct)
+    [HttpPatch("{id:guid}/status")]
+    public async Task<ActionResult<WorkOrderResponse>> UpdateStatus(
+        Guid id,
+        [FromBody] UpdateWorkOrderStatusRequest request,
+        CancellationToken ct)
     {
-        var query = new GetWorkOrderByIdQuery
+        var cmd = new UpdateWorkOrderStatusCommand
         {
-            WorkOrderId = id
+            WorkOrderId = id,
+            Status = request.Status,
+            TenantId = HttpContext.GetTenantId()
         };
 
-        var dto = await _sender.Send(query, ct);
+        await _sender.Send(cmd, ct); // returns Unit
+
+        // Get the updated DTO
+        var query = new GetWorkOrderByIdQuery { WorkOrderId = id };
+        WorkOrderDto? dto = await _sender.Send(query, ct);
+
         if (dto is null)
             return NotFound();
 
-        var response = new WorkOrderResponse(
-            WorkOrderId: dto.Id,
-            TicketId: dto.TicketId,
-            WorkType: dto.WorkType,
-            Address: dto.Address,
-            Lat: dto.Lat,
-            Lon: dto.Lon,
-            CrewId: dto.CrewId,
-            Status: Enum.Parse<Domain.WorkOrders.WorkOrderStatus>(dto.Status));
+        var response = ToResponse(dto);
 
-        return Ok(response);
+        return CreatedAtAction(
+            nameof(GetById),
+            new { id = response.WorkOrderId },
+            response
+        );
     }
 
-    // GET api/workorders?pageNumber=1&pageSize=20
-    [HttpGet]
-    public async Task<IActionResult> List(
-        [FromQuery] int pageNumber = 1,
-        [FromQuery] int pageSize = 20,
-        CancellationToken ct = default)
+    [HttpGet("crews")]
+    public async Task<ActionResult<CrewInfo[]>> ListCrews(CancellationToken ct)
     {
-        var query = new ListWorkOrdersQuery
-        {
-            PageNumber = pageNumber,
-            PageSize = pageSize
-        };
-
-        var result = await _sender.Send(query, ct);
-
-        var items = result.Items.Select(dto => new WorkOrderResponse(
-            WorkOrderId: dto.Id,
-            TicketId: dto.TicketId,
-            WorkType: dto.WorkType,
-            Address: dto.Address,
-            Lat: dto.Lat,
-            Lon: dto.Lon,
-            CrewId: dto.CrewId,
-            Status: Enum.Parse<Domain.WorkOrders.WorkOrderStatus>(dto.Status)
-        ));
-
-        return Ok(new
-        {
-            items,
-            result.TotalCount,
-            result.PageNumber,
-            result.PageSize
-        });
+        var query = new ListCrewsQuery();
+        var crews = await _sender.Send(query, ct);
+        return Ok(crews);
     }
 
-    // POST api/workorders/{id}/assign?crewId=crew-123
-    [HttpPost("{id:guid}/assign")]
-    public async Task<IActionResult> AssignCrew(
-        Guid id,
-        [FromQuery] string crewId,
-        CancellationToken ct)
+    [HttpPut("{id:guid}/assign-crew")]
+    public async Task<ActionResult<WorkOrderResponse>> AssignCrew(
+    Guid id,
+    [FromBody] AssignCrewRequest request,
+    CancellationToken ct)
     {
         var cmd = new AssignCrewCommand
         {
             WorkOrderId = id,
-            CrewId = crewId
+            CrewId = request.CrewId,
+            CrewName = request.CrewName ?? string.Empty, // pass optional name if needed
+            TenantId = HttpContext.GetTenantId()
         };
 
         await _sender.Send(cmd, ct);
-        return NoContent();
+
+        // Return updated WorkOrder
+        var query = new GetWorkOrderByIdQuery { WorkOrderId = id };
+        var dto = await _sender.Send(query, ct);
+
+        if (dto is null)
+            return NotFound();
+
+        return Ok(ToResponse(dto));
     }
 
-    // POST api/workorders/{id}/complete
-    [HttpPost("{id:guid}/complete")]
-    public async Task<IActionResult> Complete(Guid id, CancellationToken ct)
+    private static WorkOrderResponse ToResponse(WorkOrderDto dto) =>
+        new(
+            WorkOrderId: dto.Id,
+            TicketId: dto.TicketId,
+            WorkType: dto.WorkType,
+            Address: dto.Address,
+            Lat: dto.Lat,
+            Lon: dto.Lon,
+            CrewId: dto.CrewId,
+            CrewName: dto.CrewName,
+            Status: dto.Status,
+            Details: dto.Details,
+            ScheduledAt: dto.ScheduledAt,
+            CreatedAt: dto.CreatedAt
+        );
+
+    // Small helper that matches your TS PagedResponse<T>
+    public sealed class PagedResponse<T>
     {
-        var cmd = new CompleteWorkOrderCommand
-        {
-            WorkOrderId = id
-        };
-
-        await _sender.Send(cmd, ct);
-        return NoContent();
-    }
-
-    // POST api/workorders/{id}/cancel
-    [HttpPost("{id:guid}/cancel")]
-    public async Task<IActionResult> Cancel(Guid id, CancellationToken ct)
-    {
-        var cmd = new CancelWorkOrderCommand
-        {
-            WorkOrderId = id
-        };
-
-        await _sender.Send(cmd, ct);
-        return NoContent();
+        public required IReadOnlyList<T> Items { get; init; }
+        public int TotalCount { get; init; }
+        public int PageNumber { get; init; }
+        public int PageSize { get; init; }
     }
 }

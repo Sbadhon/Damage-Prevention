@@ -1,5 +1,3 @@
-using SchedulingSvc.Domain.WorkOrders;
-
 namespace SchedulingSvc.Api.Contracts.WorkOrders;
 
 public sealed record WorkOrderResponse(
@@ -10,5 +8,9 @@ public sealed record WorkOrderResponse(
     double Lat,
     double Lon,
     string? CrewId,
-    WorkOrderStatus Status
+    string? CrewName,
+    string Status,
+    string Details,
+    DateTimeOffset ScheduledAt,
+    DateTimeOffset CreatedAt
 );

@@ -1,18 +1,17 @@
 using System.Text.Json;
 using MediatR;
 using SharedKernel;
-using SharedKernel.Tenancy;
 using TicketSvc.Application.Common.Tenancy;
 using TicketSvc.Domain.Abstractions;
 using TicketSvc.Domain.Outbox;
 using TicketSvc.Domain.Tickets;
 using Contracts.Tickets;
+using SharedKernel.Tenancy;
 
 namespace TicketSvc.Application.Tickets.Commands;
 
 public sealed class SubmitTicketCommand : IRequest<Guid>, ITenantScopedRequest
 {
-    // Filled by TenantBehavior from ITenantProvider
     public string TenantId { get; set; } = default!;
 
     public string WorkType { get; init; } = default!;
@@ -44,8 +43,12 @@ public sealed class SubmitTicketCommandHandler
         CancellationToken cancellationToken)
     {
         var now = _clock.UtcNow;
+
+        // Create as Draft
+        var tenantId = new TenantId(request.TenantId);
+
         var ticket = Ticket.CreateDraft(
-            new TenantId(request.TenantId),
+            tenantId,
             request.WorkType,
             request.Address,
             request.Description,
@@ -54,11 +57,13 @@ public sealed class SubmitTicketCommandHandler
             now
         );
 
+        // Immediately submit it (moves status + SubmittedAt)
+        ticket.Submit(now);
+
+        // 3️Persist aggregate
         await _tickets.AddAsync(ticket, cancellationToken);
 
-        // TicketSubmittedEvent is a positional ctor:
-        // TicketSubmittedEvent(string tenantId, Guid ticketId, string workType,
-        //                      string address, string description, double lat, double lon, DateTimeOffset submittedAt)
+        // Build integration event from the *submitted* ticket
         var evt = new TicketSubmittedEvent(
             ticket.TenantId.Value,
             ticket.Id,
@@ -70,10 +75,8 @@ public sealed class SubmitTicketCommandHandler
             now
         );
 
-        // Serialize event for Outbox
         var payload = JsonSerializer.Serialize(evt);
 
-        // OutboxMessage – we’ll fix its signature in the next step
         var outboxMessage = OutboxMessage.Create(
             ticketId: ticket.Id,
             tenantId: ticket.TenantId.Value,
@@ -84,7 +87,6 @@ public sealed class SubmitTicketCommandHandler
 
         await _outbox.AddAsync(outboxMessage, cancellationToken);
 
-        // No direct publish here; OutboxDispatcher will publish later
         return ticket.Id;
     }
 }

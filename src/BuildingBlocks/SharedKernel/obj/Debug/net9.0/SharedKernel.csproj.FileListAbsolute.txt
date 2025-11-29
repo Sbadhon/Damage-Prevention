@@ -5,8 +5,8 @@
 /Users/sohana/Documents/damage-prevention-saas/src/BuildingBlocks/SharedKernel/obj/Debug/net9.0/SharedKernel.AssemblyInfoInputs.cache
 /Users/sohana/Documents/damage-prevention-saas/src/BuildingBlocks/SharedKernel/obj/Debug/net9.0/SharedKernel.AssemblyInfo.cs
 /Users/sohana/Documents/damage-prevention-saas/src/BuildingBlocks/SharedKernel/obj/Debug/net9.0/SharedKernel.csproj.CoreCompileInputs.cache
+/Users/sohana/Documents/damage-prevention-saas/src/BuildingBlocks/SharedKernel/obj/Debug/net9.0/SharedKernel.sourcelink.json
 /Users/sohana/Documents/damage-prevention-saas/src/BuildingBlocks/SharedKernel/obj/Debug/net9.0/SharedKernel.dll
 /Users/sohana/Documents/damage-prevention-saas/src/BuildingBlocks/SharedKernel/obj/Debug/net9.0/refint/SharedKernel.dll
 /Users/sohana/Documents/damage-prevention-saas/src/BuildingBlocks/SharedKernel/obj/Debug/net9.0/SharedKernel.pdb
 /Users/sohana/Documents/damage-prevention-saas/src/BuildingBlocks/SharedKernel/obj/Debug/net9.0/ref/SharedKernel.dll
-/Users/sohana/Documents/damage-prevention-saas/src/BuildingBlocks/SharedKernel/obj/Debug/net9.0/SharedKernel.sourcelink.json

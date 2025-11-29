@@ -1,8 +1,19 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
+import 'leaflet/dist/leaflet.css';
+import L from 'leaflet';
 import { Ticket } from '../../types';
 
+// Fix default marker icon for Leaflet in React
+delete (L.Icon.Default.prototype as any)._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
+  iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
+  shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
+});
+
 interface AddTicketFormProps {
-  onAddTicket: (newTicketData: Omit<Ticket, 'id' | 'status' | 'createdAt' | 'lat' | 'lon'>) => Promise<void>;
+  onAddTicket: (newTicketData: Omit<Ticket, 'ticketId' | 'status' | 'createdAt' | 'lat' | 'lon'> & { lat: number; lon: number }) => Promise<void>;
   onClose: () => void;
 }
 
@@ -11,6 +22,45 @@ export const AddTicketForm: React.FC<AddTicketFormProps> = ({ onAddTicket, onClo
   const [workType, setWorkType] = useState('');
   const [address, setAddress] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [coords, setCoords] = useState<{ lat: number; lon: number } | null>(null);
+  const [loadingCoords, setLoadingCoords] = useState(false);
+
+  // Function to get lat/lon using Nominatim
+  const getLatLon = async (address: string) => {
+    const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(address)}&format=json&limit=1`;
+    const response = await fetch(url, { headers: { 'User-Agent': 'your-app-name' } });
+    const data = await response.json();
+    if (data.length > 0) {
+      return {
+        lat: parseFloat(data[0].lat),
+        lon: parseFloat(data[0].lon),
+      };
+    } else {
+      throw new Error('Address not found');
+    }
+  };
+
+  // Update map coordinates whenever address changes
+  useEffect(() => {
+    if (!address) {
+      setCoords(null);
+      return;
+    }
+
+    const timer = setTimeout(async () => {
+      setLoadingCoords(true);
+      try {
+        const c = await getLatLon(address);
+        setCoords(c);
+      } catch {
+        setCoords(null);
+      } finally {
+        setLoadingCoords(false);
+      }
+    }, 800); // debounce API call
+
+    return () => clearTimeout(timer);
+  }, [address]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -18,11 +68,24 @@ export const AddTicketForm: React.FC<AddTicketFormProps> = ({ onAddTicket, onClo
       alert('Please fill out all fields.');
       return;
     }
+  
     setIsSubmitting(true);
-    await onAddTicket({ description, workType, address });
-    // No need to set isSubmitting to false, as the component will unmount on success
+    try {
+      await onAddTicket({
+        description,
+        workType,
+        address,
+        lat: coords ? coords.lat : 0,   // allow invalid address
+        lon: coords ? coords.lon : 0,   // allow invalid address
+      });
+      onClose();
+    } catch (error) {
+      console.error(error);
+      alert('Failed to create ticket. Please try again.');
+      setIsSubmitting(false);
+    }
   };
-
+  
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div>
@@ -36,6 +99,7 @@ export const AddTicketForm: React.FC<AddTicketFormProps> = ({ onAddTicket, onClo
           required
         />
       </div>
+
       <div>
         <label htmlFor="workType" className="block text-sm font-medium text-gray-600 dark:text-gray-300">Work Type</label>
         <input
@@ -48,6 +112,7 @@ export const AddTicketForm: React.FC<AddTicketFormProps> = ({ onAddTicket, onClo
           required
         />
       </div>
+
       <div>
         <label htmlFor="address" className="block text-sm font-medium text-gray-600 dark:text-gray-300">Address</label>
         <input
@@ -59,6 +124,23 @@ export const AddTicketForm: React.FC<AddTicketFormProps> = ({ onAddTicket, onClo
           required
         />
       </div>
+
+      {loadingCoords && <p className="text-sm text-gray-500 dark:text-gray-400">Fetching coordinates...</p>}
+
+      {coords && (
+        <div className="h-64 w-full mt-2">
+          <MapContainer center={[coords.lat, coords.lon]} zoom={15} scrollWheelZoom={false} className="h-full w-full rounded-md">
+            <TileLayer
+              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+            />
+            <Marker position={[coords.lat, coords.lon]}>
+              <Popup>{address}</Popup>
+            </Marker>
+          </MapContainer>
+        </div>
+      )}
+
       <div className="flex justify-end gap-4 pt-4">
         <button
           type="button"

@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using RiskSvc.Api.Contracts.Risk;
 using RiskSvc.Application.Risk.Queries;
 using RiskSvc.Domain.Risk;
+using RiskSvc.Api.Middleware;
 
 namespace RiskSvc.Api.Controllers;
 
@@ -23,7 +24,8 @@ public sealed class RiskController : ControllerBase
     {
         var query = new GetRiskByTicketIdQuery
         {
-            TicketId = ticketId
+            TicketId = ticketId,
+            TenantId = HttpContext.GetTenantId()
         };
 
         var dto = await _sender.Send(query, ct);
@@ -54,6 +56,7 @@ public sealed class RiskController : ControllerBase
     {
         var query = new ListRiskAssessmentsQuery
         {
+            TenantId = HttpContext.GetTenantId(),
             PageNumber = pageNumber,
             PageSize = pageSize
         };

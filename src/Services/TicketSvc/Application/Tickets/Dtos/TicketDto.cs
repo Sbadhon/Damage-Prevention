@@ -5,31 +5,49 @@ namespace TicketSvc.Application.Tickets.Dtos;
 public sealed class TicketDto
 {
     public Guid Id { get; init; }
-  public string TenantId { get; init; } = default!;
+    public string TenantId { get; init; } = default!;
     public string WorkType { get; init; } = default!;
     public string Address { get; init; } = default!;
     public string Description { get; init; } = default!;
     public double Lat { get; init; }
     public double Lon { get; init; }
+
+    /// <summary>
+    /// UI-friendly status string:
+    /// Open | In Progress | Completed | Cancelled
+    /// </summary>
     public string Status { get; init; } = default!;
+
     public DateTimeOffset CreatedAt { get; init; }
     public DateTimeOffset? SubmittedAt { get; init; }
     public DateTimeOffset? CompletedAt { get; init; }
     public DateTimeOffset? CancelledAt { get; init; }
 
-    public static TicketDto FromEntity(Ticket ticket) => new()
-    {
-        Id = ticket.Id,
-        TenantId = ticket.TenantId.Value,
-        WorkType = ticket.WorkType,
-        Address = ticket.Address,
-        Description = ticket.Description,
-        Lat = ticket.Lat,
-        Lon = ticket.Lon,
-        Status = ticket.Status.ToString(),
-        CreatedAt = ticket.CreatedAt,
-        SubmittedAt = ticket.SubmittedAt,
-        CompletedAt = ticket.CompletedAt,
-        CancelledAt = ticket.CancelledAt
-    };
+    public static TicketDto FromEntity(Ticket ticket) =>
+        new()
+        {
+            Id          = ticket.Id,
+            TenantId    = ticket.TenantId.Value,
+            WorkType    = ticket.WorkType,
+            Address     = ticket.Address,
+            Description = ticket.Description,
+            Lat         = ticket.Lat,
+            Lon         = ticket.Lon,
+            Status      = MapStatus(ticket.Status),
+            CreatedAt   = ticket.CreatedAt,
+            SubmittedAt = ticket.SubmittedAt,
+            CompletedAt = ticket.CompletedAt,
+            CancelledAt = ticket.CancelledAt
+        };
+
+    private static string MapStatus(TicketStatus status) =>
+        status switch
+        {
+            TicketStatus.Draft      => "Open",
+            TicketStatus.Submitted  => "Open",
+            TicketStatus.Assigned   => "In Progress",
+            TicketStatus.Completed  => "Completed",
+            TicketStatus.Cancelled  => "Cancelled",
+            _                       => "Open"
+        };
 }

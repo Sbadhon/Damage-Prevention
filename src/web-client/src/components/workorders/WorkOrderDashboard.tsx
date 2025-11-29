@@ -1,38 +1,18 @@
-import React, { useState, useEffect } from 'react';
-import { WorkOrder, WorkOrderStatus } from '../../types';
-import { Pagination } from '../common/Pagination';
-import { Modal } from '../common/Modal';
-import { useAppDispatch, useAppSelector } from '../../hooks';
+import React, { useState, useEffect } from "react";
+import { WorkOrder, WorkOrderStatus } from "../../types";
+import { Pagination } from "../common/Pagination";
+import { Modal } from "../common/Modal";
+import { useAppDispatch, useAppSelector } from "../../hooks";
 
 import {
   fetchWorkOrdersPage,
   selectWorkOrdersState,
   setPage,
   updateWorkOrderStatusThunk,
-} from '../../state/workOrdersSlice';
-
-const WorkOrderDetails: React.FC<{ workOrder: WorkOrder }> = ({ workOrder }) => {
-  return (
-    <div className="space-y-4 text-gray-900 dark:text-gray-100">
-      <p>
-        <strong className="text-gray-700 dark:text-gray-400">Work Order ID:</strong>{' '}
-        {workOrder.id}
-      </p>
-      <p>
-        <strong className="text-gray-700 dark:text-gray-400">Associated Ticket ID:</strong>{' '}
-        {workOrder.ticketId}
-      </p>
-      <p>
-        <strong className="text-gray-700 dark:text-gray-400">Crew:</strong>{' '}
-        {workOrder.crewName}
-      </p>
-      <p>
-        <strong className="text-gray-700 dark:text-gray-400">Scheduled At:</strong>{' '}
-        {new Date(workOrder.scheduledAt).toLocaleString()}
-      </p>
-    </div>
-  );
-};
+} from "../../state/workOrdersSlice";
+import { DashboardSummary } from "../common/DashboardSummary";
+import { WorkOrderDetails } from "./WorkOrderDetails";
+import { WorkOrderStatusBadge } from "../common/WorkOrderStatusBadge";
 
 export const WorkOrderDashboard: React.FC = () => {
   const dispatch = useAppDispatch();
@@ -57,6 +37,55 @@ export const WorkOrderDashboard: React.FC = () => {
     await dispatch(updateWorkOrderStatusThunk({ workOrderId, newStatus }));
   };
 
+  const getAllowedTransitions = (current: WorkOrderStatus): WorkOrderStatus[] => {
+    switch (current) {
+      case WorkOrderStatus.Pending:
+        return [
+          WorkOrderStatus.Pending,
+          WorkOrderStatus.Assigned,
+          WorkOrderStatus.Completed,
+          WorkOrderStatus.Cancelled,
+        ];
+      case WorkOrderStatus.Assigned:
+        return [
+          WorkOrderStatus.Assigned,
+          WorkOrderStatus.Completed,
+          WorkOrderStatus.Cancelled,
+        ];
+      case WorkOrderStatus.Completed:
+      case WorkOrderStatus.Cancelled:
+        // Cannot transition away
+        return [current];
+      default:
+        return [current];
+    }
+  };  
+  const dashboardSummaryStats = {
+    pending: {
+      title: "Pending",
+      value: items.filter((wo) => wo.status === WorkOrderStatus.Pending).length,
+      color: "bg-blue-100 dark:bg-blue-500/20",
+    },
+    assigned: {
+      title: "Assigned",
+      value: items.filter((wo) => wo.status === WorkOrderStatus.Assigned)
+        .length,
+      color: "bg-yellow-100 dark:bg-yellow-500/20",
+    },
+    completed: {
+      title: "Completed",
+      value: items.filter((wo) => wo.status === WorkOrderStatus.Completed)
+        .length,
+      color: "bg-green-100 dark:bg-green-500/20",
+    },
+    cancelled: {
+      title: "Cancelled",
+      value: items.filter((wo) => wo.status === WorkOrderStatus.Cancelled)
+        .length,
+      color: "bg-red-100 dark:bg-red-500/20",
+    },
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between mb-4">
@@ -69,6 +98,10 @@ export const WorkOrderDashboard: React.FC = () => {
           </p>
         </div>
       </div>
+
+      {dashboardSummaryStats && (
+        <DashboardSummary stats={dashboardSummaryStats} />
+      )}
 
       <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
@@ -108,9 +141,9 @@ export const WorkOrderDashboard: React.FC = () => {
               </thead>
               <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
                 {items.map((wo) => (
-                  <tr key={wo.id}>
+                  <tr key={wo.workOrderId}>
                     <td className="px-4 py-3 text-gray-900 dark:text-gray-100">
-                      {wo.id}
+                      {wo.workOrderId}
                     </td>
                     <td className="px-4 py-3 text-gray-700 dark:text-gray-200">
                       {wo.ticketId}
@@ -122,7 +155,9 @@ export const WorkOrderDashboard: React.FC = () => {
                       {new Date(wo.scheduledAt).toLocaleString()}
                     </td>
                     <td className="px-4 py-3 text-gray-700 dark:text-gray-200">
-                      {wo.status}
+                      <WorkOrderStatusBadge
+                        level={wo.status}
+                      ></WorkOrderStatusBadge>
                     </td>
                     <td className="px-4 py-3 text-right">
                       <div className="inline-flex gap-2">
@@ -136,13 +171,17 @@ export const WorkOrderDashboard: React.FC = () => {
                           value={wo.status}
                           onChange={(e) =>
                             handleStatusChange(
-                              wo.id,
+                              wo.workOrderId,
                               e.target.value as WorkOrderStatus
                             )
                           }
-                          className="text-xs rounded-md border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800"
+                          disabled={
+                            wo.status === WorkOrderStatus.Completed ||
+                            wo.status === WorkOrderStatus.Cancelled
+                          }
+                          className="text-xs rounded-md border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 disabled:bg-gray-300 dark:disabled:bg-gray-700"
                         >
-                          {Object.values(WorkOrderStatus).map((status) => (
+                          {getAllowedTransitions(wo.status).map((status) => (
                             <option key={status} value={status}>
                               {status}
                             </option>
@@ -171,9 +210,12 @@ export const WorkOrderDashboard: React.FC = () => {
         <Modal
           isOpen={!!selectedOrder}
           onClose={() => setSelectedOrder(null)}
-          title={`Work Order: ${selectedOrder.id}`}
+          title={`Work Order: ${selectedOrder.workOrderId}`}
         >
-          <WorkOrderDetails workOrder={selectedOrder} />
+          <WorkOrderDetails
+            workOrder={selectedOrder}
+            onClose={() => setSelectedOrder(null)}
+          />
         </Modal>
       )}
     </div>

@@ -8,6 +8,8 @@ using RiskSvc.Application.Common.Tenancy;
 using RiskSvc.Domain.Abstractions;
 using RiskSvc.Infrastructure.Messaging;
 using RiskSvc.Infrastructure.Risk;
+using System.Text.Json.Serialization;
+using RiskSvc.Api.Middleware;
 
 namespace RiskSvc;
 
@@ -31,7 +33,9 @@ public class Program
         });
 
         // Controllers + Swagger
-        builder.Services.AddControllers();
+        builder.Services.AddControllers()
+           .AddJsonOptions(options =>
+        options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()));
         builder.Services.AddEndpointsApiExplorer();
         builder.Services.AddSwaggerGen();
 
@@ -76,7 +80,7 @@ public class Program
             app.UseSwagger();
             app.UseSwaggerUI();
         }
-
+        app.UseMiddleware<TenantResolutionMiddleware>();
         app.UseRouting();
         app.UseCors("AllowFE");
         app.MapControllers();

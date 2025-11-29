@@ -9,9 +9,6 @@ export const Header: React.FC = () => {
             <h1 className="text-xl font-bold ml-3 text-gray-900 dark:text-white">Damage Prevention</h1>
         </div>
         <div className="flex justify-between items-center">
-            <button className="bg-teal-600 mr-3 hover:bg-teal-700 text-white font-bold py-2 px-4 rounded-lg transition-colors flex items-center gap-2">
-                <span>Login</span>
-            </button>
             <ThemeSwitcher />
         </div>
       </div>

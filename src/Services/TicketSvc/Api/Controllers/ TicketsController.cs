@@ -5,6 +5,7 @@ using TicketSvc.Api.Contracts.Tickets;
 using TicketSvc.Application.Tickets.Commands;
 using TicketSvc.Application.Tickets.Queries;
 using TicketSvc.Domain.Tickets;
+using TicketSvc.Api.Middleware;
 
 namespace TicketSvc.Api.Controllers;
 
@@ -27,6 +28,7 @@ public sealed class TicketsController : ControllerBase
     {
         var command = new SubmitTicketCommand
         {
+            TenantId = HttpContext.GetTenantId(),
             WorkType = request.WorkType,
             Address = request.Address,
             Description = request.Description,
@@ -34,15 +36,32 @@ public sealed class TicketsController : ControllerBase
             Lon = request.Lon
         };
 
+        // Create the ticket
         var id = await _sender.Send(command, ct);
 
-        var response = new
-        {
-            TicketId = id,
-            Status = TicketStatus.Submitted.ToString()
-        };
+        // Fetch the full DTO for the created ticket
+        var query = new GetTicketByIdQuery { TicketId = id };
+        var dto = await _sender.Send(query, ct);
 
-        return AcceptedAtAction(nameof(GetTicketById), new { id }, response);
+        if (dto is null)
+            return NotFound();
+
+        // Return the full response
+        var response = new TicketResponse(
+            TicketId: dto.Id,
+            WorkType: dto.WorkType,
+            Address: dto.Address,
+            Description: dto.Description,
+            Lat: dto.Lat,
+            Lon: dto.Lon,
+            Status: dto.Status,
+            CreatedAt: dto.CreatedAt,
+            SubmittedAt: dto.SubmittedAt,
+            CompletedAt: dto.CompletedAt,
+            CancelledAt: dto.CancelledAt
+        );
+
+        return Ok(response);
     }
 
     // GET api/tickets/{id}
@@ -51,7 +70,8 @@ public sealed class TicketsController : ControllerBase
     {
         var query = new GetTicketByIdQuery
         {
-            TicketId = id
+            TicketId = id,
+            TenantId = HttpContext.GetTenantId(),
         };
 
         var dto = await _sender.Send(query, ct);
@@ -85,6 +105,7 @@ public sealed class TicketsController : ControllerBase
     {
         var query = new ListTicketsQuery
         {
+            TenantId = HttpContext.GetTenantId(),
             PageNumber = pageNumber,
             PageSize = pageSize
         };
@@ -129,7 +150,29 @@ public sealed class TicketsController : ControllerBase
 
         await _sender.Send(command, ct);
 
-        return NoContent();
+       // Fetch the full DTO for the created ticket
+        var query = new GetTicketByIdQuery { TicketId = id };
+        var dto = await _sender.Send(query, ct);
+
+        if (dto is null)
+            return NotFound();
+
+        // Return the full response
+        var response = new TicketResponse(
+            TicketId: dto.Id,
+            WorkType: dto.WorkType,
+            Address: dto.Address,
+            Description: dto.Description,
+            Lat: dto.Lat,
+            Lon: dto.Lon,
+            Status: dto.Status,
+            CreatedAt: dto.CreatedAt,
+            SubmittedAt: dto.SubmittedAt,
+            CompletedAt: dto.CompletedAt,
+            CancelledAt: dto.CancelledAt
+        );
+
+        return Ok(response);
     }
 
     // POST api/tickets/{id}/cancel
@@ -147,6 +190,28 @@ public sealed class TicketsController : ControllerBase
 
         await _sender.Send(command, ct);
 
-        return NoContent();
+        // Fetch the full DTO for the created ticket
+        var query = new GetTicketByIdQuery { TicketId = id };
+        var dto = await _sender.Send(query, ct);
+
+        if (dto is null)
+            return NotFound();
+
+        // Return the full response
+        var response = new TicketResponse(
+            TicketId: dto.Id,
+            WorkType: dto.WorkType,
+            Address: dto.Address,
+            Description: dto.Description,
+            Lat: dto.Lat,
+            Lon: dto.Lon,
+            Status: dto.Status,
+            CreatedAt: dto.CreatedAt,
+            SubmittedAt: dto.SubmittedAt,
+            CompletedAt: dto.CompletedAt,
+            CancelledAt: dto.CancelledAt
+        );
+
+        return Ok(response);
     }
 }

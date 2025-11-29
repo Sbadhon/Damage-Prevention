@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("RasterProcessingSvc")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+3f8370b4c975a12906f03de48781838e10bf5a13")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+36dc59a39315f4960faa8af82dbd366fbdf34da6")]
 [assembly: System.Reflection.AssemblyProductAttribute("RasterProcessingSvc")]
 [assembly: System.Reflection.AssemblyTitleAttribute("RasterProcessingSvc")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
