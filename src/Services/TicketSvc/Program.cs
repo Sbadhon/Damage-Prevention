@@ -4,7 +4,6 @@ using SharedKernel.Options;
 using TicketSvc.Application.Tickets.Commands;
 using TicketSvc.Domain.Abstractions;
 using TicketSvc.Domain.Events;
-using TicketSvc.Infrastructure.Events;
 using TicketSvc.Infrastructure.Tickets;
 using MassTransit;
 using Microsoft.Extensions.DependencyInjection;
@@ -13,6 +12,7 @@ using TicketSvc.Api.Tenancy;
 using TicketSvc.Application.Common.Behaviors;
 using TicketSvc.Application.Common.Tenancy;
 using TicketSvc.Infrastructure.Outbox;
+using Microsoft.EntityFrameworkCore;
 
 
 namespace TicketSvc;
@@ -53,8 +53,15 @@ public class Program
         builder.Services.AddScoped<ITenantProvider, HttpTenantProvider>();
         builder.Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(TenantBehavior<,>));
 
-        // Ticket repository
-        builder.Services.AddSingleton<ITicketRepository, InMemoryTicketRepository>();
+        // EF Core + SQL Server
+        var connString = builder.Configuration.GetConnectionString("TicketDatabase")
+                  ?? "Host=localhost;Port=5437;Database=TicketDb;Username=postgres;Password=postgres";
+
+        builder.Services.AddDbContext<TicketDbContext>(options =>
+            options.UseNpgsql(connString));
+
+        // Use EF repository 
+        builder.Services.AddScoped<ITicketRepository, EfTicketRepository>();
 
         // Outbox repository (for integration events)
         builder.Services.AddSingleton<IOutboxRepository, InMemoryOutboxRepository>();

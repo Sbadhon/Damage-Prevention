@@ -58,7 +58,7 @@ public class Program
         builder.Services.AddDbContext<SchedulingDbContext>(options =>
             options.UseSqlServer(connString));
 
-        // Use EF repository instead of in-memory
+        // Use EF repository 
         builder.Services.AddScoped<IWorkOrderRepository, EfWorkOrderRepository>();
 
         // MassTransit + RabbitMQ

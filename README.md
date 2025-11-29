@@ -1,12 +1,11 @@
 # Damage Prevention SaaS – Multi-Tenant DDD Microservice Suite
 
-A small, production-style damage prevention platform inspired by 811 / KorTerra workflows.
+A small, production-style damage prevention platform inspired by 811 / KorTerra workflows—built with multi-tenant DDD, CQRS, and event-driven microservices powered by MassTransit + RabbitMQ.
 
 ## Services
-
-- **TicketSvc** – multi-tenant dig ticket intake & publishing  
-- **SchedulingSvc** – work order scheduling per tenant  
-- **RiskSvc** – risk scoring & analytics (with optional GIS hook)  
+- **TicketSvc** – tenant-aware dig ticket intake & event publication
+- **SchedulingSvc** – automated work order creation & scheduling
+- **RiskSvc** – risk scoring, hazard analysis, tenant-scoped analytics
 - **RasterProcessingSvc** – GIS/raster analysis helper  
 - **Gateway** – API gateway façade (optional)  
 - **Web Client** – React + Redux dashboard for tenants  
@@ -16,56 +15,40 @@ A small, production-style damage prevention platform inspired by 811 / KorTerra 
 - SaaS + multi-tenant  
 - **DDD-styled** (Domain-Driven Design)  
 - **CQRS** + **MediatR**  
-- Event-driven via **Kafka** or **Azure Service Bus**  
-- Wired with **Dependency Injection** and **options-based configuration**  
+- Event-Driven microservices using MassTransit + RabbitMQ 
+- Consistent folder structure across all services
+- Configurable via appsettings.json + DI
 
 ## Architecture Diagram
 ```mermaid
 flowchart LR
     subgraph FE[Frontend]
-        W[React + Redux<br/>web-client]
+        W[React + Redux<br/>Web Client]
     end
 
-    subgraph API[Gateway / Services]
-        G[Gateway<br/> optional façade]
-        T[TicketSvc<br/>Ticket API + events]
+    subgraph API[Backend Services]
+        T[TicketSvc<br/>Ticket API + Events]
         S[SchedulingSvc<br/>Work Orders]
         R[RiskSvc<br/>Risk Assessments]
-        RP[RasterProcessingSvc<br/>GIS/Raster API]
+        G[Gateway<br/>Optional]
     end
 
-    subgraph Infra[Infrastructure]
-        K[(Kafka)]
-        SB[(Azure Service Bus)]
-        PG[(Postgres<br/>assets/raster)]
-        SQL[(SQL Server<br/>tickets/workorders if used)]
+    subgraph MQ[RabbitMQ Broker]
+        Q1((ticket-submitted))
     end
 
-    Ten[Multi-tenant Clients<br/>X-Tenant-Id/JWT] -->|HTTP<br/>JSON| W
+    FE -->|HTTP / JSON| T
+    FE -->|HTTP / JSON| S
+    FE -->|HTTP / JSON| R
+    FE -->|optional| G
 
-    W -->|/api/...| G
-    W -->|direct dev| T
-    W -->|direct dev| S
-    W -->|direct dev| R
+    T -- TicketSubmittedEvent --> Q1
+    Q1 --> S
+    Q1 --> R
 
-    G -->|/api/tickets| T
-    G -->|/api/workorders| S
-    G -->|/api/risk| R
-
-    T -->|TicketSubmittedEvent| K
-    T -->|TicketSubmittedEvent| SB
-
-    K --> S
-    K --> R
-
-    SB --> S
-    SB --> R
-
-    R -->|HTTP| RP
-
-    RP --> PG
-    S --> SQL
-    T --> SQL
+    S -->|SQL Server| DB1[(db_scheduling)]
+    T -->|SQL Server| DB2[(db_tickets)]
+    R -->|SQL Server| DB3[(db_risk)]
 ```
 
 
@@ -79,20 +62,17 @@ flowchart LR
 - `appsettings*.json` are configuration files for different environments.  
 
 ## Tech Stack & Cross-Cutting Patterns
-
 ### Backend
-
 - **.NET 9** – ASP.NET Core minimal-style Web APIs  
-- **MediatR (v11)** – Implements CQRS:
+**MediatR (v11)** – Implements CQRS:
   - Command handlers (write)
   - Query handlers (read)
   - Pipeline behaviors (e.g., multi-tenant enforcement)
-
-- **DDD-style layering**:
+**DDD-style layering**:
   - **Api** → HTTP, controllers, tenancy middleware  
   - **Application** → Use cases (commands/queries)  
   - **Domain** → Aggregates, domain services, repository abstractions  
-  - **Infrastructure** → Persistence, messaging, external integrations  
+  - **Infrastructure** → Persistence, messaging
 
 ### Multi-Tenancy
 
@@ -100,40 +80,26 @@ flowchart LR
 - `ITenantProvider` + `TenantBehavior<TRequest, TResponse>`  
 - Tenant-aware requests implement `ITenantScopedRequest`  
 
-### Messaging
+### Messaging (MassTransit + RabbitMQ)
+All microservices communicate over RabbitMQ using MassTransit.
+**Events Published**
+ - TicketSubmittedEvent (from TicketSvc)
 
-- **Kafka** via `Confluent.Kafka`  
-- **Azure Service Bus** via `Azure.Messaging.ServiceBus`  
+**Consumers**
+ - SchedulingSvc listens for TicketSubmittedEvent
+ - RiskSvc listens for TicketSubmittedEvent
 
-- Centralized configuration in `SharedKernel.Options.TicketEventsOptions`:
-
-```json
-"TicketEvents": {
-  "UseKafka": true,
-  "UseAzureServiceBus": false,
-  "Kafka": {
-    "BootstrapServers": "localhost:9092",
-    "TicketSubmittedTopic": "ticket-submitted",
-    "GroupId": "risk-consumers"
-  },
-  "AzureServiceBus": {
-    "ConnectionString": "...",
-    "TopicName": "ticket-submitted",
-    "SubscriptionName": "risk-svc"
-  }
-}
-```
+Local/production RabbitMQ brokers supported
 ### SharedKernel
 
 The `SharedKernel` contains cross-cutting utilities, abstractions, and strongly-typed configuration shared across services.
 
 - **IDateTime / SystemClock** – Provides a testable abstraction for the current time.  
 - **Strongly-typed options** – Centralized configuration objects, e.g.:
-  - `TicketEventsOptions` (Kafka + Azure Service Bus)  
+  - `TicketEventsOptions` 
 - **Global config & utilities** – Any settings or helpers that need to be reused across services.
 
 ### Frontend
-
 - **React + TypeScript + Vite**  
 - **Redux Toolkit** for state slices:
   - `ticketsSlice`
@@ -148,36 +114,47 @@ The `SharedKernel` contains cross-cutting utilities, abstractions, and strongly-
   - Axios instance automatically adds `X-Tenant-Id` header per request (e.g., `acme-corp`)
   - Configurable base URLs for each backend service
 
-### Infrastructure
-
-- **Kafka + Zookeeper** via Docker  
-- **Postgres** for GIS/raster data (used by `RasterProcessingSvc`)  
-- **SQL Server** for relational data (tickets/work orders, if wired)  
-- **Adminer** for database inspection
-
 
 ## Service Responsibilities
-
 ### TicketSvc – Multi-Tenant Ticket Intake
 **Responsibilities**
-- Multi-tenant ticket intake (`POST /api/tickets`)  
-- Store tickets as aggregates (tenancy enforced)  
-- Publish `TicketSubmittedEvent` to Kafka or Azure Service Bus  
-- Tenant enforcement via:
-  - `X-Tenant-Id` header
-  - `ITenantProvider`
-  - `TenantBehavior<TRequest,TResponse>`
+ - Creates & manages dig tickets
+ - Tenant-scoped CRUD operations
+ - Publishes TicketSubmittedEvent via RabbitMQ
+ - Enforces tenant boundaries in domain & database
 
-
-### SchedulingSvc – Work Orders & Scheduling
+### SchedulingSvc – Automated Work Order Scheduling
  **Responsibilities**
- - Consume TicketSubmittedEvent (Kafka/ASB)
- - Create work orders per ticket for a given tenant
- - Allow updating work order status (completed/cancelled)
- - Expose read model for FE work orders table
+ - Subscribes to TicketSubmittedEvent
+ - Creates tenant-scoped work orders
+ - Allows completion/cancellation
+ - Exposes list views for the UI
 
-### RiskSvc – Risk Scoring & Analytics
+### RiskSvc – Ticket Risk Assessment
  **Responsibilities**
-Consume TicketSubmittedEvent and compute a risk assessment
-Optionally integrate with RasterProcessingSvc for GIS/raster context
-Expose API for listing risk assessments and querying per ticket
+ - Subscribes to TicketSubmittedEvent
+ - Computes a risk score (work-type based rules)
+ - Stores tenant-scoped risk assessments
+ - Provides endpoints to:
+ - Get risk by ticket
+ - List risk assessments
+
+ ### Local Development
+ ```bash
+ {
+  docker compose up -d   # starts rabbitmq + dbs
+  dotnet run             # from each service folder
+  npm run dev            # from web-client folder
+ }
+ ```
+
+  ### Summary
+  This platform is:
+  - Multi-tenant
+  - Event-driven
+  - RabbitMQ-powered
+  - DDD-oriented
+  - CQRS/MediatR structured
+  - Horizontally scalable
+
+Every service is autonomous, consistent in structure, and communicates ONLY via MassTransit RabbitMQ events.

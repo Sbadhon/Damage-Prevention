@@ -10,6 +10,7 @@ using RiskSvc.Infrastructure.Messaging;
 using RiskSvc.Infrastructure.Risk;
 using System.Text.Json.Serialization;
 using RiskSvc.Api.Middleware;
+using Microsoft.EntityFrameworkCore;
 
 namespace RiskSvc;
 
@@ -48,8 +49,23 @@ public class Program
         builder.Services.AddScoped<ITenantProvider, HttpTenantProvider>();
         builder.Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(TenantBehavior<,>));
 
-        // Risk repository (whatever you have)
-        builder.Services.AddSingleton<IRiskAssessmentRepository, InMemoryRiskAssessmentRepository>();
+        // EF Core + SQL Server
+        // EF Core + SQL Server with transient retry
+        var connString = builder.Configuration.GetConnectionString("RiskDatabase")
+                          ?? "Server=localhost,1433;Database=RiskSvcDb;User Id=sa;Password=SqlStr0ng!Passw0rd;TrustServerCertificate=True;";
+
+        builder.Services.AddDbContext<RiskDbContext>(options =>
+            options.UseSqlServer(connString, sqlOptions =>
+                sqlOptions.EnableRetryOnFailure(
+                    maxRetryCount: 5,
+                    maxRetryDelay: TimeSpan.FromSeconds(10),
+                    errorNumbersToAdd: null)
+            ));
+
+
+
+        // EF Core 
+        builder.Services.AddScoped<IRiskAssessmentRepository, EfCoreRiskAssessmentRepository>();
 
         // TicketEvents options (in case you still use them for something else)
         builder.Services.Configure<TicketEventsOptions>(
@@ -75,16 +91,25 @@ public class Program
 
         var app = builder.Build();
 
+        // Automatically create/migrate DB on startup
+        using (var scope = app.Services.CreateScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<RiskDbContext>();
+            db.Database.Migrate(); // creates the database + applies migrations
+        }
+
         if (app.Environment.IsDevelopment())
         {
             app.UseSwagger();
             app.UseSwaggerUI();
         }
+
         app.UseMiddleware<TenantResolutionMiddleware>();
         app.UseRouting();
         app.UseCors("AllowFE");
         app.MapControllers();
 
         app.Run();
+
     }
 }

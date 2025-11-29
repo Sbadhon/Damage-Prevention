@@ -10,9 +10,7 @@ public readonly record struct TenantId(string Value)
     public static TenantId From(string value)
     {
         if (string.IsNullOrWhiteSpace(value))
-        {
-            throw new ArgumentException("Tenant id cannot be empty.", nameof(value));
-        }
+            throw new ArgumentException("Tenant ID cannot be empty.", nameof(value));
 
         return new TenantId(value.Trim());
     }

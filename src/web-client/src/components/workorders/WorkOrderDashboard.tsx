@@ -37,29 +37,39 @@ export const WorkOrderDashboard: React.FC = () => {
     await dispatch(updateWorkOrderStatusThunk({ workOrderId, newStatus }));
   };
 
-  const getAllowedTransitions = (current: WorkOrderStatus): WorkOrderStatus[] => {
+  const getAllowedTransitions = (
+    current: WorkOrderStatus,
+    crewName?: string | null
+  ): WorkOrderStatus[] => {
     switch (current) {
       case WorkOrderStatus.Pending:
-        return [
+        const transitions = [
           WorkOrderStatus.Pending,
-          WorkOrderStatus.Assigned,
           WorkOrderStatus.Completed,
           WorkOrderStatus.Cancelled,
         ];
+        // Only allow "Assigned" if a crew is assigned
+        if (crewName) {
+          transitions.splice(1, 0, WorkOrderStatus.Assigned); // insert Assigned after Pending
+        }
+        return transitions;
+  
       case WorkOrderStatus.Assigned:
         return [
           WorkOrderStatus.Assigned,
           WorkOrderStatus.Completed,
           WorkOrderStatus.Cancelled,
         ];
+  
       case WorkOrderStatus.Completed:
       case WorkOrderStatus.Cancelled:
-        // Cannot transition away
         return [current];
+  
       default:
         return [current];
     }
-  };  
+  };
+  
   const dashboardSummaryStats = {
     pending: {
       title: "Pending",
@@ -181,11 +191,25 @@ export const WorkOrderDashboard: React.FC = () => {
                           }
                           className="text-xs rounded-md border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 disabled:bg-gray-300 dark:disabled:bg-gray-700"
                         >
-                          {getAllowedTransitions(wo.status).map((status) => (
-                            <option key={status} value={status}>
-                              {status}
-                            </option>
-                          ))}
+                          {getAllowedTransitions(wo.status).map((status) => {
+                            const isAssignedWithoutCrew =
+                              status === WorkOrderStatus.Assigned &&
+                              !wo.crewName;
+                            return (
+                              <option
+                                key={status}
+                                value={status}
+                                disabled={isAssignedWithoutCrew}
+                                title={
+                                  isAssignedWithoutCrew
+                                    ? "Assign a crew first"
+                                    : ""
+                                }
+                              >
+                                {status}
+                              </option>
+                            );
+                          })}
                         </select>
                       </div>
                     </td>

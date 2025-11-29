@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("AuthDevSvc")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+36dc59a39315f4960faa8af82dbd366fbdf34da6")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+c8a57af7bad5d8ef96462404df1eb0b1b2b3e957")]
 [assembly: System.Reflection.AssemblyProductAttribute("AuthDevSvc")]
 [assembly: System.Reflection.AssemblyTitleAttribute("AuthDevSvc")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
