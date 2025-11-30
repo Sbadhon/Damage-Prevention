@@ -1,14 +1,13 @@
 # Damage Prevention SaaS – Multi-Tenant DDD Microservice Suite
 
-A small, production-style damage prevention platform inspired by 811 / KorTerra workflows—built with multi-tenant DDD, CQRS, and event-driven microservices powered by MassTransit + RabbitMQ.
+A small, production-style damage prevention platform built with multi-tenant DDD, CQRS, and event-driven microservices powered by MassTransit + RabbitMQ.
 
 ## Services
 - **TicketSvc** – tenant-aware dig ticket intake & event publication
 - **SchedulingSvc** – automated work order creation & scheduling
 - **RiskSvc** – risk scoring, hazard analysis, tenant-scoped analytics
-- **RasterProcessingSvc** – GIS/raster analysis helper  
-- **Gateway** – API gateway façade (optional)  
-- **Web Client** – React + Redux dashboard for tenants  
+- **Gateway** – YARP-based API gateway façade (JWT + multi-tenant headers)
+- **Web Client** – React + Redux dashboard for tenants -> Gateway (YARP)
 
 ## Architecture
 - SaaS + multi-tenant  
@@ -18,36 +17,47 @@ A small, production-style damage prevention platform inspired by 811 / KorTerra 
 - Consistent folder structure across all services
 - Configurable via appsettings.json + DI
 
-## Architecture Diagram
 ```mermaid
 flowchart LR
     subgraph FE[Frontend]
         W[React + Redux<br/>Web Client]
     end
 
+    subgraph GW[API Gateway]
+        G[YARP Gateway<br/>JWT + X-Tenant-Id]
+    end
+
     subgraph API[Backend Services]
         T[TicketSvc<br/>Ticket API + Events]
         S[SchedulingSvc<br/>Work Orders]
         R[RiskSvc<br/>Risk Assessments]
-        G[Gateway<br/>Optional]
     end
 
     subgraph MQ[RabbitMQ Broker]
         Q1((ticket-submitted))
     end
 
-    FE -->|HTTP / JSON| T
-    FE -->|HTTP / JSON| S
-    FE -->|HTTP / JSON| R
-    FE -->|optional| G
+    subgraph DB[Data Stores]
+        DB2[(db_tickets<br/>PostgreSQL)]
+        DB1[(db_scheduling<br/>SQL Server)]
+        DB3[(db_risk<br/>SQL Server)]
+    end
 
+    %% HTTP call flow
+    W -->|HTTP / JSON| G
+    G -->|HTTP / JSON| T
+    G -->|HTTP / JSON| S
+    G -->|HTTP / JSON| R
+
+    %% Events
     T -- TicketSubmittedEvent --> Q1
     Q1 --> S
     Q1 --> R
 
-    S -->|SQL Server| DB1[(db_scheduling)]
-    T -->|PostgreSQL| DB2[(db_tickets)]
-    R -->|SQL Server| DB3[(db_risk)]
+    %% Persistence
+    T --> DB2
+    S --> DB1
+    R --> DB3
 ```
 
 ![Damage Prevention SaaS GIF](./images/damage-prevention.gif)
@@ -110,9 +120,12 @@ The `SharedKernel` contains cross-cutting utilities, abstractions, and strongly-
   - `WorkOrderDashboard`
   - `RiskDashboard`
   - Pagination, Modal, RiskBadge, DashboardSummary
+**Gateway** – YARP-based API gateway façade (JWT + multi-tenant headers)
 **API client**:
   - Axios instance automatically adds `X-Tenant-Id` header per request (e.g., `acme-corp`)
-  - Configurable base URLs for each backend service
+  - Single configurable base URL for the API Gateway (e.g., `VITE_API_GATEWAY_URL=http://localhost:5117`)
+  - Gateway fans out to TicketSvc, SchedulingSvc, and RiskSvc
+
 
 
 ## Service Responsibilities

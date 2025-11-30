@@ -38,3 +38,4 @@
 /Users/sohana/Documents/damage-prevention-saas/src/Services/AuthDevSvc/obj/Debug/net9.0/AuthDevSvc.pdb
 /Users/sohana/Documents/damage-prevention-saas/src/Services/AuthDevSvc/obj/Debug/net9.0/AuthDevSvc.genruntimeconfig.cache
 /Users/sohana/Documents/damage-prevention-saas/src/Services/AuthDevSvc/obj/Debug/net9.0/ref/AuthDevSvc.dll
+/Users/sohana/Documents/damage-prevention-saas/src/Services/AuthDevSvc/obj/Debug/net9.0/AuthDevSvc.sourcelink.json

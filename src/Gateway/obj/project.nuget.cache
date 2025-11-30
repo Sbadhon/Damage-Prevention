@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "f80VMfyhhPQ=",
+  "dgSpecHash": "VlXeAsahGG0=",
   "success": true,
-  "projectFilePath": "/Users/sohana/Documents/damage-prevention-saas/src/Gateway/Gateway/Gateway.csproj",
+  "projectFilePath": "/Users/sohana/Documents/damage-prevention-saas/src/Gateway/Gateway.csproj",
   "expectedPackageFiles": [
     "/Users/sohana/.nuget/packages/microsoft.aspnetcore.authentication/2.3.0/microsoft.aspnetcore.authentication.2.3.0.nupkg.sha512",
     "/Users/sohana/.nuget/packages/microsoft.aspnetcore.authentication.abstractions/2.3.0/microsoft.aspnetcore.authentication.abstractions.2.3.0.nupkg.sha512",

@@ -27,6 +27,18 @@ var tokenValidationParameters = new TokenValidationParameters
     ClockSkew = TimeSpan.Zero
 };
 
+// Add CORS policy
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowFrontend", policy =>
+    {
+        policy.WithOrigins("http://localhost:5173")  // Allow your frontend URL
+              .AllowAnyHeader()
+              .AllowAnyMethod()
+              .AllowCredentials(); // Allow credentials if you're using cookies/sessions
+    });
+});
+
 // Swagger
 services.AddEndpointsApiExplorer();
 services.AddSwaggerGen();
@@ -37,12 +49,13 @@ services.AddReverseProxy()
 
 var app = builder.Build();
 
+// Use CORS policy
+app.UseCors("AllowFrontend");
+
 app.UseSwagger();
 app.UseSwaggerUI();
 
-//
 // Simple auth middleware JUST for routes that need auth
-//
 app.Use(async (context, next) =>
 {
     // For now, we only protect /whoami; later we’ll protect proxied routes
@@ -77,6 +90,23 @@ app.Use(async (context, next) =>
 
 // Health (no auth)
 app.MapGet("/health", () => Results.Ok("ok"));
+app.MapGet("/debug/routes", (IConfiguration config) =>
+{
+    var routesSection = config.GetSection("ReverseProxy:Routes");
+    var routes = routesSection.GetChildren().Select(route =>
+    {
+        var match = route.GetSection("Match");
+        return new
+        {
+            RouteKey = route.Key,
+            ClusterId = route["ClusterId"],
+            Path = match["Path"]
+        };
+    });
+
+    return Results.Json(routes);
+});
+
 
 // WhoAmI (requires valid JWT via the middleware above)
 app.MapGet("/whoami", (HttpContext ctx) =>

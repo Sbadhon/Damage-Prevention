@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "/Users/sohana/Documents/damage-prevention-saas/src/Gateway/Gateway/Gateway.csproj": {}
+    "/Users/sohana/Documents/damage-prevention-saas/src/Gateway/Gateway.csproj": {}
   },
   "projects": {
-    "/Users/sohana/Documents/damage-prevention-saas/src/Gateway/Gateway/Gateway.csproj": {
+    "/Users/sohana/Documents/damage-prevention-saas/src/Gateway/Gateway.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "/Users/sohana/Documents/damage-prevention-saas/src/Gateway/Gateway/Gateway.csproj",
+        "projectUniqueName": "/Users/sohana/Documents/damage-prevention-saas/src/Gateway/Gateway.csproj",
         "projectName": "Gateway",
-        "projectPath": "/Users/sohana/Documents/damage-prevention-saas/src/Gateway/Gateway/Gateway.csproj",
+        "projectPath": "/Users/sohana/Documents/damage-prevention-saas/src/Gateway/Gateway.csproj",
         "packagesPath": "/Users/sohana/.nuget/packages/",
-        "outputPath": "/Users/sohana/Documents/damage-prevention-saas/src/Gateway/Gateway/obj/",
+        "outputPath": "/Users/sohana/Documents/damage-prevention-saas/src/Gateway/obj/",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "/Users/sohana/.nuget/NuGet/NuGet.Config"
