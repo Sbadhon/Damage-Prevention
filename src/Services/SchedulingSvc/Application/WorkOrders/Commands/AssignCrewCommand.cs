@@ -22,7 +22,10 @@ public sealed class AssignCrewCommandHandler
     private readonly IDateTime _clock;
     private readonly IPublishEndpoint _publisher;
 
-    public AssignCrewCommandHandler(IWorkOrderRepository repository, IDateTime clock, IPublishEndpoint publisher)
+    public AssignCrewCommandHandler(
+        IWorkOrderRepository repository, 
+        IDateTime clock, 
+        IPublishEndpoint publisher)
     {
         _repository = repository;
         _clock = clock;
@@ -38,17 +41,19 @@ public sealed class AssignCrewCommandHandler
         if (!string.Equals(wo.TenantId, request.TenantId, StringComparison.Ordinal))
             throw new InvalidOperationException("Work order does not belong to current tenant.");
 
+        // Assign the crew
         wo.AssignCrew(request.CrewId, request.CrewName, _clock.UtcNow);
 
         await _repository.SaveChangesAsync(ct);
-        
-        await _publisher.Publish(new WorkOrderAssignedEvent(
-            wo.Id,
-            wo.TicketId,
-            wo.CrewId!,
-            wo.CrewName!,
-            wo.AssignedAt!.Value
-        ), ct);
+
+        // Publish event
+        await _publisher.Publish(new WorkOrderAssignedEvent
+        {
+            WorkOrderId = wo.Id,
+            TicketId = wo.TicketId,
+            CrewId = wo.CrewId!,
+            AssignedAt = wo.AssignedAt!.Value
+        }, ct);
 
         return Unit.Value;
     }

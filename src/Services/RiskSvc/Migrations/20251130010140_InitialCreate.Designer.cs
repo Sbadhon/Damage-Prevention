@@ -12,7 +12,7 @@ using RiskSvc.Infrastructure.Risk;
 namespace RiskSvc.Migrations
 {
     [DbContext(typeof(RiskDbContext))]
-    [Migration("20251129111852_InitialCreate")]
+    [Migration("20251130010140_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />

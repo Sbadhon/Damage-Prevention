@@ -2,11 +2,10 @@ using System;
 
 namespace Contracts.Scheduling
 {
-    public record WorkOrderAssignedEvent
+    public record WorkOrderCompletedEvent
     {
         public Guid WorkOrderId { get; init; }
         public Guid TicketId { get; init; }
-        public string CrewId { get; init; } = default!;
-        public DateTimeOffset AssignedAt { get; init; }
+        public DateTimeOffset CompletedAt { get; init; }
     }
 }

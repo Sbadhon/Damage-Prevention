@@ -24,6 +24,7 @@ export enum TicketStatus {
     ticketId: string;
     description: string;
     status: TicketStatus;
+    crewId?: string;
     workType: string;
     address: string;
     createdAt: string;

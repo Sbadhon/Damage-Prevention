@@ -49,7 +49,8 @@ namespace SchedulingSvc.Migrations
                         .HasColumnType("nvarchar(64)");
 
                     b.Property<string>("CrewName")
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
 
                     b.Property<double>("Lat")
                         .HasColumnType("float");

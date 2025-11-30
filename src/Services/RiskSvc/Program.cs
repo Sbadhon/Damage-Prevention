@@ -50,18 +50,11 @@ public class Program
         builder.Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(TenantBehavior<,>));
 
         // EF Core + SQL Server
-        // EF Core + SQL Server with transient retry
         var connString = builder.Configuration.GetConnectionString("RiskDatabase")
                           ?? "Server=localhost,1433;Database=RiskSvcDb;User Id=sa;Password=SqlStr0ng!Passw0rd;TrustServerCertificate=True;";
 
         builder.Services.AddDbContext<RiskDbContext>(options =>
-            options.UseSqlServer(connString, sqlOptions =>
-                sqlOptions.EnableRetryOnFailure(
-                    maxRetryCount: 5,
-                    maxRetryDelay: TimeSpan.FromSeconds(10),
-                    errorNumbersToAdd: null)
-            ));
-
+            options.UseSqlServer(connString));
 
 
         // EF Core 
@@ -74,9 +67,9 @@ public class Program
         //  MassTransit + RabbitMQ
         builder.Services.AddMassTransit(x =>
         {
-            // Consumer for TicketSubmittedEvent
             x.AddConsumer<TicketSubmittedConsumer>();
 
+            // Use RabbitMQ
             x.UsingRabbitMq((context, cfg) =>
             {
                 cfg.Host("localhost", "/", h =>
@@ -84,32 +77,25 @@ public class Program
                     h.Username("guest");
                     h.Password("guest");
                 });
-
-                cfg.ConfigureEndpoints(context);
+                cfg.ReceiveEndpoint("ticket-submitted", e =>
+                {
+                    e.ConfigureConsumer<TicketSubmittedConsumer>(context);
+                });
             });
         });
 
         var app = builder.Build();
-
-        // Automatically create/migrate DB on startup
-        using (var scope = app.Services.CreateScope())
-        {
-            var db = scope.ServiceProvider.GetRequiredService<RiskDbContext>();
-            db.Database.Migrate(); // creates the database + applies migrations
-        }
 
         if (app.Environment.IsDevelopment())
         {
             app.UseSwagger();
             app.UseSwaggerUI();
         }
-
         app.UseMiddleware<TenantResolutionMiddleware>();
         app.UseRouting();
         app.UseCors("AllowFE");
         app.MapControllers();
 
         app.Run();
-
     }
 }

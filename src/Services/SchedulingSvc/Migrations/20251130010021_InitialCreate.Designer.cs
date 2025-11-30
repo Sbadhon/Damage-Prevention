@@ -12,8 +12,8 @@ using SchedulingSvc.Infrastructure;
 namespace SchedulingSvc.Migrations
 {
     [DbContext(typeof(SchedulingDbContext))]
-    [Migration("20251128071233_InitialWorkOrders")]
-    partial class InitialWorkOrders
+    [Migration("20251130010021_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -52,7 +52,8 @@ namespace SchedulingSvc.Migrations
                         .HasColumnType("nvarchar(64)");
 
                     b.Property<string>("CrewName")
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
 
                     b.Property<double>("Lat")
                         .HasColumnType("float");

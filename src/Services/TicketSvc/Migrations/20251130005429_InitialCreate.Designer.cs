@@ -12,7 +12,7 @@ using TicketSvc.Infrastructure.Tickets;
 namespace TicketSvc.Migrations
 {
     [DbContext(typeof(TicketDbContext))]
-    [Migration("20251129215116_InitialCreate")]
+    [Migration("20251130005429_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -81,6 +81,9 @@ namespace TicketSvc.Migrations
 
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("CrewId")
+                        .HasColumnType("text");
 
                     b.Property<string>("Description")
                         .IsRequired()

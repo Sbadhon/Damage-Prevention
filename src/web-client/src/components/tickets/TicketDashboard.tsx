@@ -1,26 +1,22 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import {
-  Ticket,
-  TicketStatus,
-  RiskAssessment,
-} from '../../types';
-import api from '../../services/api';
-import { Pagination } from '../common/Pagination';
-import { Modal } from '../common/Modal';
-import { RiskBadge } from '../common/RiskBadge';
-import { AddTicketForm } from './AddTicketForm';
-import { DashboardSummary } from '../common/DashboardSummary';
-import { useAppDispatch, useAppSelector } from '../../hooks';
+import React, { useState, useEffect, useCallback } from "react";
+import { Ticket, TicketStatus, RiskAssessment } from "../../types";
+import api from "../../services/api";
+import { Pagination } from "../common/Pagination";
+import { Modal } from "../common/Modal";
+import { RiskBadge } from "../common/RiskBadge";
+import { AddTicketForm } from "./AddTicketForm";
+import { DashboardSummary } from "../common/DashboardSummary";
+import { useAppDispatch, useAppSelector } from "../../hooks";
 import {
   fetchTicketsPage,
   updateTicketStatusThunk,
   createTicketThunk,
   selectTicketsState,
   setPage,
-} from '../../state/ticketsSlice';
-import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
-import 'leaflet/dist/leaflet.css';
-import { TicketStatusBadge } from '../common/TicketStatusBadge';
+} from "../../state/ticketsSlice";
+import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
+import "leaflet/dist/leaflet.css";
+import { TicketStatusBadge } from "../common/TicketStatusBadge";
 
 const TicketDetails: React.FC<{
   ticket: Ticket;
@@ -30,6 +26,39 @@ const TicketDetails: React.FC<{
   const [currentStatus, setCurrentStatus] = useState<TicketStatus>(
     ticket.status
   );
+
+  const getAllowedTransitions = (
+    current: TicketStatus,
+    crewAssigned?: string | null
+  ): TicketStatus[] => {
+    switch (current) {
+      case TicketStatus.Open:
+        const transitions = [
+          TicketStatus.Open,
+          TicketStatus.Completed,
+          TicketStatus.Cancelled,
+        ];
+        // Only allow "In Progress" if a crew is assigned
+        if (crewAssigned) {
+          transitions.splice(1, 0, TicketStatus.InProgress); // Insert "In Progress" after Open
+        }
+        return transitions;
+
+      case TicketStatus.InProgress:
+        return [
+          TicketStatus.InProgress,
+          TicketStatus.Completed,
+          TicketStatus.Cancelled,
+        ];
+
+      case TicketStatus.Completed:
+      case TicketStatus.Cancelled:
+        return [current];
+
+      default:
+        return [current];
+    }
+  };
 
   const loadRisk = useCallback(async () => {
     try {
@@ -58,53 +87,62 @@ const TicketDetails: React.FC<{
             <p>
               <strong className="text-gray-500 dark:text-gray-400">
                 Description:
-              </strong>{' '}
+              </strong>{" "}
               {ticket.description}
             </p>
             <p>
               <strong className="text-gray-500 dark:text-gray-400">
                 Work Type:
-              </strong>{' '}
+              </strong>{" "}
               {ticket.workType}
             </p>
             <p>
               <strong className="text-gray-500 dark:text-gray-400">
                 Address:
-              </strong>{' '}
+              </strong>{" "}
               {ticket.address}
             </p>
             <p>
-              <strong className="text-gray-500 dark:text-gray-400">
-                Lat:
-              </strong>{' '}
+              <strong className="text-gray-500 dark:text-gray-400">Lat:</strong>{" "}
               {ticket.lat}
             </p>
             <p>
-              <strong className="text-gray-500 dark:text-gray-400">
-                Lon:
-              </strong>{' '}
+              <strong className="text-gray-500 dark:text-gray-400">Lon:</strong>{" "}
               {ticket.lon}
             </p>
             <p>
               <strong className="text-gray-500 dark:text-gray-400">
                 Created At:
-              </strong>{' '}
+              </strong>{" "}
               {new Date(ticket.createdAt).toLocaleString()}
             </p>
             <div className="flex items-center gap-2 mb-1">
               <strong className="text-gray-500 dark:text-gray-400">
                 Status:
-              </strong>{' '}
+              </strong>{" "}
               <select
                 value={currentStatus}
                 onChange={handleStatusChange}
                 className="w-full bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:ring-teal-500 focus:border-teal-500 text-sm p-2.5"
               >
-                {Object.values(TicketStatus).map((status) => (
-                  <option key={status} value={status}>
-                    {status}
-                  </option>
-                ))}
+                {getAllowedTransitions(ticket.status, ticket.crewId).map(
+                  (status) => {
+                    const isInProgressWithoutCrew =
+                      status === TicketStatus.InProgress && !ticket.crewId;
+                    return (
+                      <option
+                        key={status}
+                        value={status}
+                        disabled={isInProgressWithoutCrew}
+                        title={
+                          isInProgressWithoutCrew ? "Assign a crew first" : ""
+                        }
+                      >
+                        {status}
+                      </option>
+                    );
+                  }
+                )}
               </select>
             </div>
           </div>
@@ -115,12 +153,12 @@ const TicketDetails: React.FC<{
               <div className="flex items-center gap-2 mb-1">
                 <strong className="text-gray-500 dark:text-gray-400">
                   Risk:
-                </strong>{' '}
+                </strong>{" "}
                 {risk && <RiskBadge level={risk.level} />}
               </div>
               {risk ? (
                 <p className="text-sm text-gray-600 dark:text-gray-300">
-                  Score: {risk.score} • Assessed at{' '}
+                  Score: {risk.score} • Assessed at{" "}
                   {new Date(risk.assessedAt).toLocaleString()}
                 </p>
               ) : (
@@ -139,7 +177,7 @@ const TicketDetails: React.FC<{
                   >
                     <TileLayer
                       url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                      attribution='&copy; OpenStreetMap'
+                      attribution="&copy; OpenStreetMap"
                     />
                     <Marker position={[ticket.lat, ticket.lon]}>
                       <Popup>{ticket.address}</Popup>
@@ -169,10 +207,8 @@ export const TicketDashboard: React.FC = () => {
 
   const [selectedTicket, setSelectedTicket] = useState<Ticket | null>(null);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-  const [statusFilter, setStatusFilter] = useState<TicketStatus | 'All'>(
-    'All'
-  );
-  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState<TicketStatus | "All">("All");
+  const [searchTerm, setSearchTerm] = useState("");
 
   // Fetch tickets + stats when page changes
   useEffect(() => {
@@ -192,17 +228,14 @@ export const TicketDashboard: React.FC = () => {
   };
 
   const handleAddTicket = async (
-    newTicketData: Omit<
-      Ticket,
-      'ticketId' | 'status' | 'createdAt'
-    >
+    newTicketData: Omit<Ticket, "ticketId" | "status" | "createdAt">
   ) => {
     await dispatch(createTicketThunk(newTicketData));
   };
-  
+
   const filteredTickets = tickets.filter((t: Ticket) => {
     const matchesStatus =
-      statusFilter === 'All' ? true : t.status === statusFilter;
+      statusFilter === "All" ? true : t.status === statusFilter;
     const matchesSearch =
       !searchTerm ||
       t.ticketId.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -215,22 +248,22 @@ export const TicketDashboard: React.FC = () => {
     stats &&
     ({
       openTickets: {
-        title: 'Open Tickets',
+        title: "Open Tickets",
         value: stats.tickets.open,
-        color: 'bg-blue-100 dark:bg-blue-900/40',
+        color: "bg-blue-100 dark:bg-blue-900/40",
       },
       inProgressTickets: {
-        title: 'In Progress',
+        title: "In Progress",
         value: stats.tickets.inProgress,
         color: "bg-yellow-100 dark:bg-yellow-500/20",
       },
       completedTickets: {
-        title: 'Completed',
+        title: "Completed",
         value: stats.tickets.completed,
         color: "bg-green-100 dark:bg-green-500/20",
       },
       highRisk: {
-        title: 'High/Critical Risk',
+        title: "High/Critical Risk",
         value: stats.risks.high + stats.risks.critical,
         color: "bg-red-100 dark:bg-red-500/20",
       },
@@ -265,7 +298,7 @@ export const TicketDashboard: React.FC = () => {
             <select
               value={statusFilter}
               onChange={(e) =>
-                setStatusFilter(e.target.value as TicketStatus | 'All')
+                setStatusFilter(e.target.value as TicketStatus | "All")
               }
               className="rounded-md border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm"
             >
@@ -339,7 +372,7 @@ export const TicketDashboard: React.FC = () => {
                       {ticket.address}
                     </td>
                     <td className="px-4 py-3 text-gray-700 dark:text-gray-200">
-                       <TicketStatusBadge level={ticket.status} />
+                      <TicketStatusBadge level={ticket.status} />
                     </td>
                     <td className="px-4 py-3 text-right">
                       <button

@@ -166,3 +166,5 @@
 /Users/sohana/Documents/damage-prevention-saas/src/Services/TicketSvc/obj/Debug/net9.0/TicketSvc.pdb
 /Users/sohana/Documents/damage-prevention-saas/src/Services/TicketSvc/obj/Debug/net9.0/TicketSvc.genruntimeconfig.cache
 /Users/sohana/Documents/damage-prevention-saas/src/Services/TicketSvc/obj/Debug/net9.0/ref/TicketSvc.dll
+/Users/sohana/Documents/damage-prevention-saas/src/Services/TicketSvc/bin/Debug/net9.0/Polly.dll
+/Users/sohana/Documents/damage-prevention-saas/src/Services/TicketSvc/bin/Debug/net9.0/Polly.Core.dll

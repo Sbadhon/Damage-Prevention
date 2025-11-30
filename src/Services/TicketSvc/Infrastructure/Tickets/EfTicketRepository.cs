@@ -17,7 +17,6 @@ public sealed class EfTicketRepository : ITicketRepository
     public async Task<Ticket?> GetByIdAsync(Guid id, CancellationToken ct = default)
     {
         return await _db.Tickets
-            //.AsNoTracking()
             .FirstOrDefaultAsync(t => t.Id == id, ct);
     }
 

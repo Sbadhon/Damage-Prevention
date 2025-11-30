@@ -41,6 +41,7 @@ namespace TicketSvc.Migrations
                     Description = table.Column<string>(type: "character varying(1000)", maxLength: 1000, nullable: false),
                     Lat = table.Column<double>(type: "double precision", nullable: false),
                     Lon = table.Column<double>(type: "double precision", nullable: false),
+                    CrewId = table.Column<string>(type: "text", nullable: true),
                     Status = table.Column<int>(type: "integer", nullable: false),
                     CreatedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
                     SubmittedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),

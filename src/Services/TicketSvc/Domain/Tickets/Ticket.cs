@@ -20,7 +20,7 @@ public sealed class Ticket : AggregateRoot<Guid>
     public string Description { get; init; } = default!;
     public double Lat { get; private set; }
     public double Lon { get; private set; }
-
+    public string? CrewId { get; private set; }
     public TicketStatus Status { get; private set; }
 
     public DateTimeOffset CreatedAt { get; private set; }
@@ -50,6 +50,7 @@ public sealed class Ticket : AggregateRoot<Guid>
         Description = description;
         Lat = lat;
         Lon = lon;
+        CrewId = null;
         CreatedAt = createdAt;
         Status = TicketStatus.Draft;
     }
@@ -93,12 +94,29 @@ public sealed class Ticket : AggregateRoot<Guid>
         SubmittedAt = submittedAt;
     }
 
-    public void MarkAssigned()
+    public void MarkAssigned(string crewId)
     {
         if (Status is TicketStatus.Completed or TicketStatus.Cancelled)
             throw new InvalidOperationException("Cannot assign a closed ticket.");
-
+        CrewId = crewId;
         Status = TicketStatus.Assigned;
+    }
+    public void OnWorkOrderCompleted()
+    {
+        if (Status is TicketStatus.Completed or TicketStatus.Cancelled)
+            return; // Already closed, do nothing
+
+        Status = TicketStatus.Completed;
+        CompletedAt = DateTimeOffset.UtcNow;
+    }
+
+    public void OnWorkOrderCancelled()
+    {
+        if (Status is TicketStatus.Completed or TicketStatus.Cancelled)
+            return; // Already closed, do nothing
+
+        Status = TicketStatus.Submitted; // revert to Submitted/Open
+        SubmittedAt ??= DateTimeOffset.UtcNow;
     }
 
     public void Complete(DateTimeOffset completedAt)

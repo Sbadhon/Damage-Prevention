@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dgSpecHash": "5O4m7g6H+s4=",
+  "dgSpecHash": "YGWiUmspHPE=",
   "success": true,
   "projectFilePath": "/Users/sohana/Documents/damage-prevention-saas/src/Services/TicketSvc/TicketSvc.csproj",
   "expectedPackageFiles": [
@@ -53,6 +53,8 @@
     "/Users/sohana/.nuget/packages/mono.texttemplating/3.0.0/mono.texttemplating.3.0.0.nupkg.sha512",
     "/Users/sohana/.nuget/packages/npgsql/9.0.0/npgsql.9.0.0.nupkg.sha512",
     "/Users/sohana/.nuget/packages/npgsql.entityframeworkcore.postgresql/9.0.0/npgsql.entityframeworkcore.postgresql.9.0.0.nupkg.sha512",
+    "/Users/sohana/.nuget/packages/polly/8.6.5/polly.8.6.5.nupkg.sha512",
+    "/Users/sohana/.nuget/packages/polly.core/8.6.5/polly.core.8.6.5.nupkg.sha512",
     "/Users/sohana/.nuget/packages/rabbitmq.client/7.2.0/rabbitmq.client.7.2.0.nupkg.sha512",
     "/Users/sohana/.nuget/packages/swashbuckle.aspnetcore/10.0.1/swashbuckle.aspnetcore.10.0.1.nupkg.sha512",
     "/Users/sohana/.nuget/packages/swashbuckle.aspnetcore.swagger/10.0.1/swashbuckle.aspnetcore.swagger.10.0.1.nupkg.sha512",

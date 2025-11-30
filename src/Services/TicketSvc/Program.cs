@@ -67,18 +67,19 @@ public class Program
         builder.Services.AddSingleton<IOutboxRepository, InMemoryOutboxRepository>();
 
         builder.Services.AddMassTransit(x =>
-        {
-            // No consumers in TicketSvc, it's just a publisher
-            x.UsingRabbitMq((context, cfg) =>
-            {
-                cfg.Host("localhost", "/", h =>
-                {
-                    h.Username("guest");
-                    h.Password("guest");
-                });
-                cfg.ConfigureEndpoints(context);
-            });
-        });
+     {
+         x.AddConsumer<WorkOrderConsumer>();
+
+         x.UsingRabbitMq((context, cfg) =>
+         {
+             cfg.Host("rabbitmq://localhost");
+
+             cfg.ReceiveEndpoint("workorder-events", e =>
+             {
+                 e.ConfigureConsumer<WorkOrderConsumer>(context);
+             });
+         });
+     });
 
         builder.Services.AddHostedService<OutboxDispatcher>();
         var app = builder.Build();
