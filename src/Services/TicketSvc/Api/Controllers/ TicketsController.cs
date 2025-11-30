@@ -5,7 +5,9 @@ using TicketSvc.Api.Contracts.Tickets;
 using TicketSvc.Application.Tickets.Commands;
 using TicketSvc.Application.Tickets.Queries;
 using TicketSvc.Domain.Tickets;
+using TicketSvc.Api.Validators;
 using TicketSvc.Api.Middleware;
+using FluentValidation;
 
 namespace TicketSvc.Api.Controllers;
 
@@ -14,11 +16,14 @@ namespace TicketSvc.Api.Controllers;
 public sealed class TicketsController : ControllerBase
 {
     private readonly ISender _sender;
+    private readonly IValidator<SubmitTicketRequest> _validator;
 
-    public TicketsController(ISender sender)
+    public TicketsController(ISender sender, IValidator<SubmitTicketRequest> validator)
     {
         _sender = sender;
+        _validator = validator; 
     }
+
 
     // POST api/tickets
     [HttpPost]
@@ -26,6 +31,11 @@ public sealed class TicketsController : ControllerBase
         [FromBody] SubmitTicketRequest request,
         CancellationToken ct)
     {
+        var validationResult = await _validator.ValidateAsync(request, ct);
+        if (!validationResult.IsValid)
+        {
+            return BadRequest(validationResult.Errors);
+        }
         var command = new SubmitTicketCommand
         {
             TenantId = HttpContext.GetTenantId(),
@@ -150,7 +160,7 @@ public sealed class TicketsController : ControllerBase
 
         await _sender.Send(command, ct);
 
-       // Fetch the full DTO for the created ticket
+        // Fetch the full DTO for the created ticket
         var query = new GetTicketByIdQuery { TicketId = id };
         var dto = await _sender.Send(query, ct);
 

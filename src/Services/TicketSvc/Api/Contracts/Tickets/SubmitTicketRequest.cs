@@ -4,21 +4,13 @@ namespace TicketSvc.Api.Contracts.Tickets;
 
 public sealed record SubmitTicketRequest
 {
-    [Required]
-    public string WorkType { get; init; }
+    public string WorkType { get; set; } = default!;
 
-    [Required]
-    public string Address { get; init; }
+    public string Address { get; set; } = default!;
 
-    [Required]
-    public string Description { get; init; }
+    public string Description { get; set; } = default!;
 
-    [Range(-90, 90)]
     public double Lat { get; init; }
 
-    [Range(-180, 180)]
     public double Lon { get; init; }
-
-    public SubmitTicketRequest(string workType, string address, string description, double lat, double lon) =>
-        (WorkType, Address, Description, Lat, Lon) = (workType, address, description, lat, lon);
 }

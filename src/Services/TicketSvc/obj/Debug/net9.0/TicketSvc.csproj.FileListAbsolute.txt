@@ -168,3 +168,6 @@
 /Users/sohana/Documents/damage-prevention-saas/src/Services/TicketSvc/obj/Debug/net9.0/ref/TicketSvc.dll
 /Users/sohana/Documents/damage-prevention-saas/src/Services/TicketSvc/bin/Debug/net9.0/Polly.dll
 /Users/sohana/Documents/damage-prevention-saas/src/Services/TicketSvc/bin/Debug/net9.0/Polly.Core.dll
+/Users/sohana/Documents/damage-prevention-saas/src/Services/TicketSvc/bin/Debug/net9.0/FluentValidation.dll
+/Users/sohana/Documents/damage-prevention-saas/src/Services/TicketSvc/bin/Debug/net9.0/FluentValidation.AspNetCore.dll
+/Users/sohana/Documents/damage-prevention-saas/src/Services/TicketSvc/bin/Debug/net9.0/FluentValidation.DependencyInjectionExtensions.dll

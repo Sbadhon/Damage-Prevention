@@ -13,6 +13,9 @@ using TicketSvc.Application.Common.Behaviors;
 using TicketSvc.Application.Common.Tenancy;
 using TicketSvc.Infrastructure.Outbox;
 using Microsoft.EntityFrameworkCore;
+using FluentValidation.AspNetCore;
+using FluentValidation;
+using TicketSvc.Api.Validators;
 
 
 namespace TicketSvc;
@@ -39,6 +42,12 @@ public class Program
 
         // Controllers + Swagger
         builder.Services.AddControllers();
+
+        // FluentValidation
+        builder.Services.AddFluentValidationAutoValidation();
+        builder.Services.AddFluentValidationClientsideAdapters();
+        builder.Services.AddValidatorsFromAssemblyContaining<SubmitTicketRequest>();
+
         builder.Services.AddEndpointsApiExplorer();
         builder.Services.AddSwaggerGen();
 
