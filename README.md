@@ -50,7 +50,7 @@ flowchart LR
     R -->|SQL Server| DB3[(db_risk)]
 ```
 
-![My GIF](.damage-prevention.gif)
+![Damage Prevention SaaS GIF](./images/damage-prevention.gif)
 
 **Notes:**
 
