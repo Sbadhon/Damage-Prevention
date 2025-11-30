@@ -11,7 +11,6 @@ A small, production-style damage prevention platform inspired by 811 / KorTerra 
 - **Web Client** – React + Redux dashboard for tenants  
 
 ## Architecture
-
 - SaaS + multi-tenant  
 - **DDD-styled** (Domain-Driven Design)  
 - **CQRS** + **MediatR**  
@@ -47,23 +46,24 @@ flowchart LR
     Q1 --> R
 
     S -->|SQL Server| DB1[(db_scheduling)]
-    T -->|SQL Server| DB2[(db_tickets)]
+    T -->|PostgreSQL| DB2[(db_tickets)]
     R -->|SQL Server| DB3[(db_risk)]
 ```
 
+![My GIF](.damage-prevention.gif)
 
 **Notes:**
 
 - `Api/` contains HTTP endpoints, middleware, and tenant-aware logic.  
 - `Application/` contains the CQRS/MediatR layer: commands, queries, DTOs, and cross-cutting behaviors.  
 - `Domain/` contains core business logic: aggregates, domain events, and repository interfaces.  
-- `Infrastructure/` provides concrete implementations: EF repositories, event publishers, GIS adapters, etc.  
+- `Infrastructure/` provides concrete implementations: EF repositories, event publishers.  
 - `Program.cs` is the composition root where services are wired with DI.  
 - `appsettings*.json` are configuration files for different environments.  
 
 ## Tech Stack & Cross-Cutting Patterns
 ### Backend
-- **.NET 9** – ASP.NET Core minimal-style Web APIs  
+**.NET 9** – ASP.NET Core minimal-style Web APIs  
 **MediatR (v11)** – Implements CQRS:
   - Command handlers (write)
   - Query handlers (read)
@@ -100,17 +100,17 @@ The `SharedKernel` contains cross-cutting utilities, abstractions, and strongly-
 - **Global config & utilities** – Any settings or helpers that need to be reused across services.
 
 ### Frontend
-- **React + TypeScript + Vite**  
-- **Redux Toolkit** for state slices:
+**React + TypeScript + Vite**  
+**Redux Toolkit** for state slices:
   - `ticketsSlice`
   - `workOrdersSlice`
   - `riskSlice` (optional)
-- **Shared UI components**:
+**Shared UI components**:
   - `TicketDashboard`
   - `WorkOrderDashboard`
   - `RiskDashboard`
   - Pagination, Modal, RiskBadge, DashboardSummary
-- **API client**:
+**API client**:
   - Axios instance automatically adds `X-Tenant-Id` header per request (e.g., `acme-corp`)
   - Configurable base URLs for each backend service
 
