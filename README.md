@@ -73,7 +73,7 @@ flowchart LR
 
 ## Tech Stack & Cross-Cutting Patterns
 ### Backend
-**.NET 9** – ASP.NET Core minimal-style Web APIs  
+**.NET 9** – ASP.NET Core Clean architecture  
 **MediatR (v11)** – Implements CQRS:
   - Command handlers (write)
   - Query handlers (read)

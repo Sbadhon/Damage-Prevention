@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("SchedulingSvc")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+b16603209042070756e05e248155adacac07d63b")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+c792c47199078e01bc2cca0a946093be0a2f2ff0")]
 [assembly: System.Reflection.AssemblyProductAttribute("SchedulingSvc")]
 [assembly: System.Reflection.AssemblyTitleAttribute("SchedulingSvc")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
