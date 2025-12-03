@@ -62,6 +62,22 @@ flowchart LR
 
 ![Damage Prevention SaaS GIF](./images/damage-prevention.gif)
 
+[![Damage Prevention SaaS CI/CD](https://github.com/Sbadhon/Damage-Prevention/actions/workflows/ci-cd.yml/badge.svg)](https://github.com/Sbadhon/Damage-Prevention/actions/workflows/ci-cd.yml)
+
+## CI/CD
+
+This repository uses GitHub Actions for a minimal but complete CI/CD pipeline:
+
+- Triggers on pushes and pull requests to `main` and `develop`
+- Restores NuGet packages and builds the full solution in **Release** configuration
+- Runs all automated tests against the solution
+- On `v*` tags, publishes:
+  - `TicketSvc`
+  - `RiskSvc`
+  - `SchedulingSvc`
+  - `Gateway`
+- Uploads build artifacts for tagged releases for easy download/deployment
+
 **Notes:**
 
 - `Api/` contains HTTP endpoints, middleware, and tenant-aware logic.  
