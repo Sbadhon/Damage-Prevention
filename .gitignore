@@ -1,0 +1,71 @@
+# --- OS Files ---
+.DS_Store
+Thumbs.db
+
+# --- Runtime Artifacts ---
+*.log
+*.tmp
+
+# --- Node ---
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-store/
+dist/
+build/
+
+# Vite
+.vite/
+
+# --- .NET / C# ---
+bin/
+obj/
+out/
+TestResults/
+*.user
+*.suo
+*.cache/
+*.vs/
+*.vscode/
+*.swp
+
+# ASP.NET secret manager
+secrets.json
+
+# Publish output
+/publish/
+
+# EF Core
+*Migrations/*snapshot*
+*.db
+
+# --- Docker ---
+docker-data/
+docker-compose.override.yml
+*.pid
+
+# --- IDEs ---
+.idea/
+*.iml
+
+# Rider
+*.sln.iml
+
+# VS Code local settings
+.vscode/*
+
+# Except these settings we want kept
+!.vscode/extensions.json
+!.vscode/settings.json
+!.vscode/launch.json
+
+# --- Environment files ---
+.env
+.env.*
+*.local
+
+# --- Generated files ---
+**/coverage/
+coverage/
+reports/

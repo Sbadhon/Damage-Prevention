@@ -1,3 +1,0 @@
-﻿<Project>
-  <Import Project="../build/AuthDevSvc.props" />
-</Project>
