@@ -3,12 +3,10 @@ name: Damage Prevention SaaS CI/CD
 on:
   push:
     branches: [ main, develop ]
-  pull_request:
-    branches: [ main, develop ]
-  # Tag = "release" build
-  push:
     tags:
       - "v*"
+  pull_request:
+    branches: [ main, develop ]
 
 env:
   DOTNET_VERSION: "9.0.x"
