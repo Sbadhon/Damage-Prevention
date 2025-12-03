@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dgSpecHash": "evusZVuxqBM=",
+  "dgSpecHash": "tnELyYl1EZ4=",
   "success": true,
   "projectFilePath": "/Users/sohana/Documents/damage-prevention-saas/tests/TicketSvc.Tests/TicketSvc.Tests.csproj",
   "expectedPackageFiles": [
@@ -9,6 +9,9 @@
     "/Users/sohana/.nuget/packages/azure.messaging.servicebus/7.20.1/azure.messaging.servicebus.7.20.1.nupkg.sha512",
     "/Users/sohana/.nuget/packages/confluent.kafka/2.12.0/confluent.kafka.2.12.0.nupkg.sha512",
     "/Users/sohana/.nuget/packages/coverlet.collector/6.0.2/coverlet.collector.6.0.2.nupkg.sha512",
+    "/Users/sohana/.nuget/packages/fluentvalidation/12.1.0/fluentvalidation.12.1.0.nupkg.sha512",
+    "/Users/sohana/.nuget/packages/fluentvalidation.aspnetcore/11.3.1/fluentvalidation.aspnetcore.11.3.1.nupkg.sha512",
+    "/Users/sohana/.nuget/packages/fluentvalidation.dependencyinjectionextensions/11.11.0/fluentvalidation.dependencyinjectionextensions.11.11.0.nupkg.sha512",
     "/Users/sohana/.nuget/packages/humanizer.core/2.14.1/humanizer.core.2.14.1.nupkg.sha512",
     "/Users/sohana/.nuget/packages/librdkafka.redist/2.12.0/librdkafka.redist.2.12.0.nupkg.sha512",
     "/Users/sohana/.nuget/packages/masstransit/8.5.6/masstransit.8.5.6.nupkg.sha512",

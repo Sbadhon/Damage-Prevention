@@ -245,3 +245,6 @@
 /Users/sohana/Documents/damage-prevention-saas/tests/TicketSvc.Tests/obj/Debug/net9.0/TicketSvc.Tests.sourcelink.json
 /Users/sohana/Documents/damage-prevention-saas/tests/TicketSvc.Tests/bin/Debug/net9.0/Polly.dll
 /Users/sohana/Documents/damage-prevention-saas/tests/TicketSvc.Tests/bin/Debug/net9.0/Polly.Core.dll
+/Users/sohana/Documents/damage-prevention-saas/tests/TicketSvc.Tests/bin/Debug/net9.0/FluentValidation.dll
+/Users/sohana/Documents/damage-prevention-saas/tests/TicketSvc.Tests/bin/Debug/net9.0/FluentValidation.AspNetCore.dll
+/Users/sohana/Documents/damage-prevention-saas/tests/TicketSvc.Tests/bin/Debug/net9.0/FluentValidation.DependencyInjectionExtensions.dll
