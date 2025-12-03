@@ -1,0 +1,66 @@
+name: Damage Prevention SaaS CI/CD
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+  # Tag = "release" build
+  push:
+    tags:
+      - "v*"
+
+env:
+  DOTNET_VERSION: "9.0.x"
+  SOLUTION_FILE: "DamagePreventionSaaS.sln"
+
+jobs:
+  build_test_publish:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+          cache: true
+          cache-dependency-path: |
+            **/*.csproj
+            **/packages.lock.json
+
+      - name: Restore
+        run: dotnet restore $SOLUTION_FILE
+
+      - name: Build (Release)
+        run: dotnet build $SOLUTION_FILE --configuration Release --no-restore
+
+      - name: Test
+        run: dotnet test $SOLUTION_FILE --configuration Release --no-build --verbosity normal
+
+      # Lightweight "CD" – publish binaries for all core services on tag
+      - name: Publish services (Release artifacts)
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: |
+          mkdir -p ./publish
+
+          dotnet publish src/Services/TicketSvc/TicketSvc.csproj \
+            -c Release -o ./publish/TicketSvc
+
+          dotnet publish src/Services/RiskSvc/RiskSvc.csproj \
+            -c Release -o ./publish/RiskSvc
+
+          dotnet publish src/Services/SchedulingSvc/SchedulingSvc.csproj \
+            -c Release -o ./publish/SchedulingSvc
+
+          dotnet publish src/Gateway/Gateway.csproj \
+            -c Release -o ./publish/Gateway
+
+      - name: Upload publish artifacts
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: actions/upload-artifact@v4
+        with:
+          name: dp-saas-release
+          path: publish
