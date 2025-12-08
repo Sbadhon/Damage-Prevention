@@ -173,7 +173,6 @@ public sealed class WorkOrdersController : ControllerBase
             CreatedAt: dto.CreatedAt
         );
 
-    // Small helper that matches your TS PagedResponse<T>
     public sealed class PagedResponse<T>
     {
         public required IReadOnlyList<T> Items { get; init; }

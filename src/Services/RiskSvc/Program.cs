@@ -19,17 +19,17 @@ public class Program
     public static void Main(string[] args)
     {
         var builder = WebApplication.CreateBuilder(args);
-
-        // CORS if you need it (similar to SchedulingSvc)
         builder.Services.AddCors(options =>
         {
             options.AddPolicy("AllowFE", policy =>
             {
-                policy
-                    .WithOrigins("http://localhost:5173")
-                    .AllowAnyHeader()
-                    .AllowAnyMethod()
-                    .AllowCredentials();
+                policy.WithOrigins(
+                             "http://localhost:5173",
+                             "http://localhost:4200"
+                         )
+                                 .AllowAnyHeader()
+                                 .AllowAnyMethod()
+                                 .AllowCredentials();
             });
         });
 
@@ -44,7 +44,7 @@ public class Program
         builder.Services.AddMediatR(typeof(Program).Assembly);
         builder.Services.AddSingleton<IDateTime, SystemClock>();
 
-        // Tenant plumbing (mirror how you did it in SchedulingSvc)
+        // Tenant plumbing
         builder.Services.AddHttpContextAccessor();
         builder.Services.AddScoped<ITenantProvider, HttpTenantProvider>();
         builder.Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(TenantBehavior<,>));
@@ -60,7 +60,7 @@ public class Program
         // EF Core 
         builder.Services.AddScoped<IRiskAssessmentRepository, EfCoreRiskAssessmentRepository>();
 
-        // TicketEvents options (in case you still use them for something else)
+        // TicketEvents options
         builder.Services.Configure<TicketEventsOptions>(
             builder.Configuration.GetSection("TicketEvents"));
 

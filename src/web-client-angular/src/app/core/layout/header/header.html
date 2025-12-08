@@ -1,0 +1,30 @@
+<header
+  class="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-4 shadow-sm z-10"
+>
+  <div class="flex justify-between items-center">
+    <div class="flex items-center">
+      <h1 class="text-xl font-bold ml-3 text-gray-900 dark:text-white">
+        Damage Prevention
+      </h1>
+    </div>
+
+    <div class="flex justify-between items-center">
+      <!-- Theme switcher using Angular Material + ThemeService -->
+      <button
+        mat-icon-button
+        type="button"
+        class="border border-gray-200 dark:border-gray-700 rounded-full h-9 w-9 flex items-center justify-center"
+        (click)="themeService.toggleTheme()"
+        [attr.aria-label]="
+          themeService.theme() === 'dark'
+            ? 'Switch to light theme'
+            : 'Switch to dark theme'
+        "
+      >
+        <mat-icon class="text-gray-700 dark:text-gray-200">
+          {{ themeService.theme() === 'dark' ? 'dark_mode' : 'light_mode' }}
+        </mat-icon>
+      </button>
+    </div>
+  </div>
+</header>

@@ -69,7 +69,7 @@ public sealed class WorkOrderConsumer :
             return;
         }
 
-        // Reopen the ticket (mark as submitted/draft depending on your workflow)
+        // Reopen the ticket (mark as submitted/draft depending on workflow)
         ticket.Submit(evt.CancelledAt); 
         await _repository.SaveChangesAsync();
 

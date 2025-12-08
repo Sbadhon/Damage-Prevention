@@ -66,7 +66,6 @@ public class Result<T> : Result
     public Result<K> Bind<K>(Func<T, Result<K>> binder)
         => IsFailure ? Result<K>.Failure(Error) : binder(Value);
 
-    // Async variants if you need them later
     public async Task<Result<K>> BindAsync<K>(Func<T, Task<Result<K>>> binder)
         => IsFailure ? Result<K>.Failure(Error) : await binder(Value);
 }

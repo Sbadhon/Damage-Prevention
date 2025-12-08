@@ -1,0 +1,192 @@
+<div class="space-y-6">
+  <div class="flex items-center justify-between mb-4">
+    <div>
+      <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Tickets</h2>
+      <p class="text-sm text-gray-500 dark:text-gray-400">
+        Multi-tenant ticket dashboard with live risk &amp; status.
+      </p>
+    </div>
+    <button
+      type="button"
+      class="px-4 py-2 text-sm font-medium shadow hover:shadow-md
+            bg-teal-600 hover:bg-teal-700 text-white rounded-lg"
+      (click)="openAddTicket()"
+    >
+      + New Ticket
+    </button>
+  </div>
+  <ng-container *ngIf="dashboardStats$ | async as stats">
+    <dp-dashboard-summary [stats]="stats"></dp-dashboard-summary>
+  </ng-container>
+  <div
+    class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl shadow-sm overflow-hidden"
+  >
+    <div class="p-4 flex flex-col md:flex-row gap-3 md:items-center md:justify-between">
+      <div class="flex gap-2">
+        <mat-form-field appearance="fill" class="min-w-[10rem]">
+          <mat-label>Status</mat-label>
+          <mat-select [(ngModel)]="statusFilter">
+            <mat-option [value]="'All'">All Statuses</mat-option>
+            <mat-option *ngFor="let status of filteredStatusOptions" [value]="status">
+              {{ status }}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+      </div>
+      <div class="flex-1 md:max-w-xs">
+        <mat-form-field appearance="fill" class="w-full">
+          <mat-label>Search by ID, description, or address...</mat-label>
+          <input matInput type="text" [(ngModel)]="searchTerm" />
+        </mat-form-field>
+      </div>
+    </div>
+    <div class="overflow-x-auto">
+      <ng-container *ngIf="ticketsState$ | async as state">
+        <ng-container *ngIf="state.loading; else loadedBlock">
+          <div class="p-6 text-center text-gray-500">Loading tickets…</div>
+        </ng-container>
+
+        <ng-template #loadedBlock>
+          <ng-container *ngIf="state.error as error; else dataBlock">
+            <div class="p-6 text-center text-red-500">
+              {{ error }}
+            </div>
+          </ng-container>
+
+          <ng-template #dataBlock>
+            <ng-container *ngIf="state.tickets?.items?.length; else noResults">
+              <table
+                mat-table
+                [dataSource]="filteredTickets(state.tickets?.items)"
+                class="min-w-full divide-y divide-gray-200 dark:divide-gray-800 text-sm"
+              >
+                <ng-container matColumnDef="ticketId">
+                  <th
+                    mat-header-cell
+                    *matHeaderCellDef
+                    class="px-4 py-3 text-left font-medium text-gray-500 dark:text-gray-400"
+                  >
+                    ID
+                  </th>
+                  <td
+                    mat-cell
+                    *matCellDef="let ticket"
+                    class="px-4 py-3 whitespace-nowrap text-gray-900 dark:text-gray-100"
+                  >
+                    {{ ticket.ticketId }}
+                  </td>
+                </ng-container>
+                <ng-container matColumnDef="description">
+                  <th
+                    mat-header-cell
+                    *matHeaderCellDef
+                    class="px-4 py-3 text-left font-medium text-gray-500 dark:text-gray-400"
+                  >
+                    Description
+                  </th>
+                  <td
+                    mat-cell
+                    *matCellDef="let ticket"
+                    class="px-4 py-3 max-w-xs truncate text-gray-700 dark:text-gray-200"
+                  >
+                    {{ ticket.description }}
+                  </td>
+                </ng-container>
+                <ng-container matColumnDef="workType">
+                  <th
+                    mat-header-cell
+                    *matHeaderCellDef
+                    class="px-4 py-3 text-left font-medium text-gray-500 dark:text-gray-400"
+                  >
+                    Work Type
+                  </th>
+                  <td
+                    mat-cell
+                    *matCellDef="let ticket"
+                    class="px-4 py-3 text-gray-700 dark:text-gray-200"
+                  >
+                    {{ ticket.workType }}
+                  </td>
+                </ng-container>
+                <ng-container matColumnDef="address">
+                  <th
+                    mat-header-cell
+                    *matHeaderCellDef
+                    class="px-4 py-3 text-left font-medium text-gray-500 dark:text-gray-400"
+                  >
+                    Address
+                  </th>
+                  <td
+                    mat-cell
+                    *matCellDef="let ticket"
+                    class="px-4 py-3 text-gray-700 dark:text-gray-200"
+                  >
+                    {{ ticket.address }}
+                  </td>
+                </ng-container>
+
+                <ng-container matColumnDef="status">
+                  <th
+                    mat-header-cell
+                    *matHeaderCellDef
+                    class="px-4 py-3 text-left font-medium text-gray-500 dark:text-gray-400"
+                  >
+                    Status
+                  </th>
+                  <td mat-cell *matCellDef="let ticket" class="px-4 py-3">
+                    <dp-status-badge [level]="ticket.status"></dp-status-badge>
+                  </td>
+                </ng-container>
+
+                <ng-container matColumnDef="actions">
+                  <th
+                    mat-header-cell
+                    *matHeaderCellDef
+                    class="px-4 py-3 text-right font-medium text-gray-500 dark:text-gray-400"
+                  >
+                    Actions
+                  </th>
+                  <td mat-cell *matCellDef="let ticket" class="px-4 py-3 text-right">
+                    <button
+                      type="button"
+                      class="inline-flex items-center px-4 py-1.5 text-xs font-medium
+                            rounded-lg border border-gray-300 text-gray-700
+                            hover:bg-gray-50
+                            dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-800"
+                      (click)="openTicketDetails(ticket)"
+                    >
+                      View details
+                  </button>
+                  </td>
+                </ng-container>
+                <tr
+                  mat-header-row
+                  *matHeaderRowDef="displayedColumns"
+                  class="bg-gray-50 dark:bg-gray-800/80"
+                ></tr>
+                <tr
+                  mat-row
+                  *matRowDef="let row; columns: displayedColumns;"
+                  class="hover:bg-gray-50 dark:hover:bg-gray-800/60 transition-colors"
+                ></tr>
+              </table>
+              <mat-paginator
+                [length]="state.tickets?.totalCount || 0"
+                [pageSize]="state.tickets?.pageSize || 10"
+                [pageIndex]="(state.tickets?.pageNumber || 1) - 1"
+                [pageSizeOptions]="[5, 10, 20, 50]"
+                showFirstLastButtons
+                (page)="handlePageChange($event)"
+              >
+              </mat-paginator>
+            </ng-container>
+
+            <ng-template #noResults>
+              <div class="p-6 text-center text-gray-500">No tickets found.</div>
+            </ng-template>
+          </ng-template>
+        </ng-template>
+      </ng-container>
+    </div>
+  </div>
+</div>

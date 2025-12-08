@@ -1,0 +1,35 @@
+x.status-filter-container {
+    display: flex;
+    gap: 1rem;
+  }
+  
+  .status-select {
+    min-width: 12rem;
+  }
+  
+  /* Remove the sharp Material border */
+  .status-select .mat-mdc-text-field-wrapper {
+    border-radius: 12px !important;
+    background: #f7f7f7 !important; /* soft background */
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    transition: box-shadow 0.25s ease, background 0.3s ease;
+    padding: 4px 0;
+  }
+  
+  /* Hover effect */
+  .status-select .mat-mdc-text-field-wrapper:hover {
+    background: #f0f0f0 !important;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+  }
+  
+  /* Focus effect */
+  .status-select.mdc-text-field--focused .mat-mdc-text-field-wrapper {
+    background: white !important;
+    box-shadow: 0 0 0 2px #90caf9; /* soft blue focus */
+  }
+  
+  /* Remove outline under label */
+  .status-select .mat-mdc-form-field-focus-overlay {
+    background: transparent !important;
+  }
+  

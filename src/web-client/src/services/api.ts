@@ -133,7 +133,7 @@ const api = {
     params: ListParams
   ): Promise<PagedResponse<RiskAssessment>> => {
     const res = await apiGatewayClient.get<PagedResponse<RiskAssessment>>(
-      "/api/riskassessments",
+      "/api/risk",
       { params }
     );
     return res.data;
@@ -141,7 +141,7 @@ const api = {
 
   getRiskByTicketId: async (ticketId: string): Promise<RiskAssessment> => {
     const res = await apiGatewayClient.get<RiskAssessment>(
-      `/api/riskassessments/ticket/${ticketId}`
+      `/api/risk/ticket/${ticketId}`
     );
     return res.data;
   },

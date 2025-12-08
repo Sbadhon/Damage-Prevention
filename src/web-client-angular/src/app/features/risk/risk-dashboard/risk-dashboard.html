@@ -1,0 +1,170 @@
+<div class="space-y-6">
+  <!-- Header -->
+  <div class="flex items-center justify-between mb-4">
+    <div>
+      <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Risk Assessments</h2>
+      <p class="text-sm text-gray-500 dark:text-gray-400">
+        Risk view across tickets for this tenant.
+      </p>
+    </div>
+  </div>
+
+  <!-- Summary -->
+  <ng-container *ngIf="dashboardStats$ | async as stats">
+    <dp-dashboard-summary [stats]="stats"></dp-dashboard-summary>
+  </ng-container>
+
+  <!-- Card -->
+  <div
+    class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl shadow-sm overflow-hidden"
+  >
+    <div class="overflow-x-auto">
+      <ng-container *ngIf="riskState$ | async as state">
+        <!-- Loading -->
+        <ng-container *ngIf="state.loading; else loadedBlock">
+          <div class="p-6 text-center text-gray-500">Loading risk assessments…</div>
+        </ng-container>
+
+        <ng-template #loadedBlock>
+          <!-- Error -->
+          <ng-container *ngIf="state.error as error; else dataBlock">
+            <div class="p-6 text-center text-red-500">
+              {{ error }}
+            </div>
+          </ng-container>
+          <ng-template #dataBlock>
+            <ng-container *ngIf="state.risks?.items?.length; else noResults">
+              <table
+                mat-table
+                [dataSource]="state.risks?.items ?? []"
+                class="min-w-full divide-y divide-gray-200 dark:divide-gray-800 text-sm"
+              >
+                <ng-container matColumnDef="riskId">
+                  <th
+                    mat-header-cell
+                    *matHeaderCellDef
+                    class="px-4 py-3 text-left font-medium text-gray-500 dark:text-gray-400"
+                  >
+                    Risk ID
+                  </th>
+                  <td
+                    mat-cell
+                    *matCellDef="let risk"
+                    class="px-4 py-3 whitespace-nowrap text-gray-900 dark:text-gray-100"
+                  >
+                    {{ risk.riskId }}
+                  </td>
+                </ng-container>
+                <ng-container matColumnDef="ticketId">
+                  <th
+                    mat-header-cell
+                    *matHeaderCellDef
+                    class="px-4 py-3 text-left font-medium text-gray-500 dark:text-gray-400"
+                  >
+                    Ticket ID
+                  </th>
+                  <td
+                    mat-cell
+                    *matCellDef="let risk"
+                    class="px-4 py-3 text-gray-700 dark:text-gray-200"
+                  >
+                    {{ risk.ticketId }}
+                  </td>
+                </ng-container>
+                <ng-container matColumnDef="level">
+                  <th
+                    mat-header-cell
+                    *matHeaderCellDef
+                    class="px-4 py-3 text-left font-medium text-gray-500 dark:text-gray-400"
+                  >
+                    Level
+                  </th>
+                  <td
+                    mat-cell
+                    *matCellDef="let risk"
+                    class="px-4 py-3 text-gray-700 dark:text-gray-200"
+                  >
+                    <dp-status-badge [level]="risk.level"></dp-status-badge>
+                  </td>
+                </ng-container>
+                <ng-container matColumnDef="score">
+                  <th
+                    mat-header-cell
+                    *matHeaderCellDef
+                    class="px-4 py-3 text-left font-medium text-gray-500 dark:text-gray-400"
+                  >
+                    Score
+                  </th>
+                  <td
+                    mat-cell
+                    *matCellDef="let risk"
+                    class="px-4 py-3 text-gray-700 dark:text-gray-200"
+                  >
+                    {{ risk.score | number: '1.2-2' }}
+                  </td>
+                </ng-container>
+                <ng-container matColumnDef="address">
+                  <th
+                    mat-header-cell
+                    *matHeaderCellDef
+                    class="px-4 py-3 text-left font-medium text-gray-500 dark:text-gray-400"
+                  >
+                    Address
+                  </th>
+                  <td
+                    mat-cell
+                    *matCellDef="let risk"
+                    class="px-4 py-3 text-gray-700 dark:text-gray-200"
+                  >
+                    {{ risk.address }}
+                  </td>
+                </ng-container>
+                <ng-container matColumnDef="assessedAt">
+                  <th
+                    mat-header-cell
+                    *matHeaderCellDef
+                    class="px-4 py-3 text-left font-medium text-gray-500 dark:text-gray-400"
+                  >
+                    Assessed At
+                  </th>
+                  <td
+                    mat-cell
+                    *matCellDef="let risk"
+                    class="px-4 py-3 text-gray-700 dark:text-gray-200"
+                  >
+                    {{ risk.assessedAt | date: 'short' }}
+                  </td>
+                </ng-container>
+
+                <tr
+                  mat-header-row
+                  *matHeaderRowDef="displayedColumns"
+                  class="bg-gray-50 dark:bg-gray-800/80"
+                ></tr>
+                <tr
+                  mat-row
+                  *matRowDef="let row; columns: displayedColumns; trackBy: trackByRiskId"
+                  class="hover:bg-gray-50 dark:hover:bg-gray-800/60 transition-colors"
+                ></tr>
+              </table>
+
+              <mat-paginator
+                [length]="state.risks?.totalCount || 0"
+                [pageSize]="state.risks?.pageSize || 10"
+                [pageIndex]="(state.risks?.pageNumber || 1) - 1"
+                [pageSizeOptions]="[5, 10, 20, 50]"
+                showFirstLastButtons
+                (page)="handlePageChange($event)"
+              >
+              </mat-paginator>
+            </ng-container>
+
+            <ng-template #noResults>
+              <div class="p-6 text-center text-gray-500">No risk assessments found.</div>
+            </ng-template>
+          </ng-template>
+        </ng-template>
+      </ng-container>
+    </div>
+  </div>
+</div>

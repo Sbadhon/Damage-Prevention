@@ -130,7 +130,7 @@ The `SharedKernel` contains cross-cutting utilities, abstractions, and strongly-
 **Redux Toolkit** for state slices:
   - `ticketsSlice`
   - `workOrdersSlice`
-  - `riskSlice` (optional)
+  - `riskSlice`
 **Shared UI components**:
   - `TicketDashboard`
   - `WorkOrderDashboard`
