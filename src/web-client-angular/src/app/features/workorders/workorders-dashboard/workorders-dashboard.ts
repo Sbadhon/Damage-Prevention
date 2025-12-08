@@ -23,8 +23,13 @@ import * as WorkOrderSelectors from '@app/core/state/workorders/workorders.selec
 import * as WorkOrderActions from '@app/core/state/workorders/workorders.actions';
 import { ListParams } from '@app/core/state/util/util.model';
 
+interface WorkOrderDetailResult {
+  statusChanged: boolean;
+  newStatus?: WorkOrderStatus;
+}
+
 @Component({
-  selector: 'app-workorder-dashboard',
+  selector: 'dp-workorder-dashboard',
   standalone: true,
   imports: [
     CommonModule,
@@ -90,7 +95,11 @@ export class WorkordersDashboard implements OnInit, OnDestroy {
   }
 
   openWorkOrderDetails(workOrder: WorkOrder): void {
-    const dialogRef = this.dialog.open<WorkOrderDetail, WorkOrderDetailData, any>(WorkOrderDetail, {
+    const dialogRef = this.dialog.open<
+      WorkOrderDetail,
+      WorkOrderDetailData,
+      WorkOrderDetailResult | undefined
+    >(WorkOrderDetail, {
       width: '900px',
       data: { workOrder },
     });
@@ -179,6 +188,7 @@ export class WorkordersDashboard implements OnInit, OnDestroy {
       }),
     );
   }
+
   onStatusChange(event: Event, workOrderId: string): void {
     const value = (event.target as HTMLSelectElement).value as WorkOrderStatus;
     this.handleStatusChange(workOrderId, value);

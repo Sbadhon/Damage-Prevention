@@ -18,7 +18,7 @@ export class WorkOrderService {
   }
 
   listWorkOrders(params: ListParams): Observable<PagedResponse<WorkOrder>> {
-    let httpParams = new HttpParams()
+    const httpParams = new HttpParams()
       .set('pageNumber', params.pageNumber)
       .set('pageSize', params.pageSize);
 

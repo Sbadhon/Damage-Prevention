@@ -20,7 +20,7 @@ export class RiskService {
   listRiskAssessments(
     params: ListParams
   ): Observable<PagedResponse<RiskAssessment>> {
-    let httpParams = new HttpParams()
+    const httpParams = new HttpParams()
       .set('pageNumber', params.pageNumber)
       .set('pageSize', params.pageSize);
 

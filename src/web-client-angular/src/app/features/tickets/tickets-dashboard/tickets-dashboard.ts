@@ -1,9 +1,15 @@
-import { ChangeDetectionStrategy, Component, OnDestroy, OnInit, inject } from '@angular/core';
-import { CommonModule, NgIf } from '@angular/common';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  OnDestroy,
+  OnInit,
+  inject,
+} from '@angular/core';
+import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Store } from '@ngrx/store';
-import { Subject } from 'rxjs';
-import { takeUntil } from 'rxjs/operators';
+import { Subject, combineLatest } from 'rxjs';
+import { takeUntil, map } from 'rxjs/operators';
 import * as TicketActions from '@app/core/state/ticket/ticket.actions';
 import * as TicketSelectors from '@app/core/state/ticket/ticket.selectors';
 import { Ticket, TicketStatus } from '@app/core/state/ticket/ticket.models';
@@ -22,11 +28,18 @@ import {
   DashboardSummary,
   DashboardStat,
 } from '@app/shared/component/dashboard-summary/dashboard-summary';
-import { map } from 'rxjs/operators';
 import { TicketDetail, TicketDetailData } from '@app/features/tickets/ticket-detail/ticket-detail';
+import * as RiskActions from '@app/core/state/risk/risk.actions';
+import * as RiskSelectors from '@app/core/state/risk/risk.selectors';
+import { RiskAssessment } from '@app/core/state/risk/risk.models';
+
+interface TicketDetailResult {
+  statusChanged: boolean;
+  newStatus?: TicketStatus;
+}
 
 @Component({
-  selector: 'app-ticket-dashboard',
+  selector: 'dp-ticket-dashboard',
   standalone: true,
   imports: [
     CommonModule,
@@ -52,6 +65,7 @@ export class TicketsDashboard implements OnInit, OnDestroy {
   private readonly destroy$ = new Subject<void>();
 
   readonly ticketsState$ = this.store.select(TicketSelectors.selectTicketsState);
+  readonly riskState$ = this.store.select(RiskSelectors.selectRiskState);
 
   readonly statusOptions: Array<TicketStatus | 'All'> = ['All', ...Object.values(TicketStatus)];
   statusFilter: TicketStatus | 'All' = 'All';
@@ -75,7 +89,9 @@ export class TicketsDashboard implements OnInit, OnDestroy {
       pageNumber: 1,
       pageSize: 10,
     };
+
     this.store.dispatch(TicketActions.loadTickets({ params }));
+    this.store.dispatch(RiskActions.loadRiskAssessments({ params }));
   }
 
   openAddTicket(): void {
@@ -94,7 +110,11 @@ export class TicketsDashboard implements OnInit, OnDestroy {
   }
 
   openTicketDetails(ticket: Ticket): void {
-    const dialogRef = this.dialog.open<TicketDetail, TicketDetailData, any>(TicketDetail, {
+    const dialogRef = this.dialog.open<
+      TicketDetail,
+      TicketDetailData,
+      TicketDetailResult | undefined
+    >(TicketDetail, {
       width: '900px',
       data: { ticket },
     });
@@ -123,7 +143,9 @@ export class TicketsDashboard implements OnInit, OnDestroy {
       pageNumber: event.pageIndex + 1,
       pageSize: event.pageSize,
     };
+
     this.store.dispatch(TicketActions.loadTickets({ params }));
+    this.store.dispatch(RiskActions.loadRiskAssessments({ params }));
   }
 
   filteredTickets(tickets: Ticket[] | null | undefined): Ticket[] {
@@ -150,16 +172,25 @@ export class TicketsDashboard implements OnInit, OnDestroy {
     return ticket.ticketId;
   }
 
-  readonly dashboardStats$ = this.ticketsState$.pipe(
-    map((state) => this.buildDashboardStats(state.tickets?.items ?? [])),
+  readonly dashboardStats$ = combineLatest([this.ticketsState$, this.riskState$]).pipe(
+    map(([ticketState, riskState]) =>
+      this.buildDashboardStats(
+        ticketState.tickets?.items ?? [],
+        riskState.risks?.items ?? [],
+      ),
+    ),
   );
 
-  private buildDashboardStats(tickets: Ticket[]): DashboardStat[] {
+  private buildDashboardStats(
+    tickets: Ticket[],
+    riskAssessments: RiskAssessment[],
+  ): DashboardStat[] {
     const open = tickets.filter((t) => t.status === TicketStatus.Open).length;
     const inProgress = tickets.filter((t) => t.status === TicketStatus.InProgress).length;
     const completed = tickets.filter((t) => t.status === TicketStatus.Completed).length;
-    //  wire RiskState in later.
-    const highRisk = 0;
+    const highRisk = riskAssessments.filter(
+      (r) => r.level === 'High' || r.level === 'Critical',
+    ).length;
 
     return [
       {

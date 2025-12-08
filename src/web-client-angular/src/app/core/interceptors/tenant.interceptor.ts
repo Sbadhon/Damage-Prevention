@@ -6,7 +6,7 @@ import { Observable } from 'rxjs';
 export class TenantInterceptor implements HttpInterceptor {
   private readonly tenantId = 'acme-corp'; // later dynamic
 
-  intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
+  intercept(req: HttpRequest<unknown>, next: HttpHandler): Observable<HttpEvent<unknown>> {
     const cloned = req.clone({
       setHeaders: {
         'X-Tenant-Id': this.tenantId,

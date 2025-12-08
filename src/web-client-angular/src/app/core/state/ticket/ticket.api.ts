@@ -18,7 +18,7 @@ export class TicketService {
   }
 
   listTickets(params: ListParams): Observable<PagedResponse<Ticket>> {
-    let httpParams = new HttpParams()
+    const httpParams = new HttpParams()
       .set('pageNumber', params.pageNumber)
       .set('pageSize', params.pageSize);
 
