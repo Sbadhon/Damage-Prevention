@@ -74,7 +74,6 @@ flowchart LR
  - Every tag matching v* (e.g., v1.0.0)
 
  **What the pipeline does** 
- - What the pipeline does
  - Restores .NET dependencies
  - Builds solution in Release mode
  - Runs all backend automated tests
@@ -147,17 +146,17 @@ The `SharedKernel` contains cross-cutting utilities, abstractions, and strongly-
   - Gateway fans out to TicketSvc, SchedulingSvc, and RiskSvc
 
 **Angular 20 (Standalone Components) + TypeScript + Vite**  
-**NgRx** Store for state management:
+ ## NgRx Store for state management:
   - `Tickets state`
   - `Work Orders state`
   - `Risk state`
-**Material** UI components
+ ## Material** UI components
   - Dialogs
   - Tables
   - Selects
   - Status badges
   - Dashboard widgets
-**UI components**:
+ ## UI components**:
   - `TicketDashboard`
   - `WorkOrderDashboard`
   - `RiskDashboard`
@@ -197,7 +196,7 @@ The `SharedKernel` contains cross-cutting utilities, abstractions, and strongly-
  {
   docker compose up -d   # starts rabbitmq + dbs
   dotnet run             # from each service folder
-  npm install            # inside web-client-angular
+  npm install            # inside web-client / web-client-angular
   npm run dev            # from web-client / web-client-angular folder
  }
  ```
