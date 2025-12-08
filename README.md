@@ -1,13 +1,13 @@
 # Damage Prevention SaaS – Multi-Tenant DDD Microservice Suite
 
-A small, production-style damage prevention platform built with multi-tenant DDD, CQRS, and event-driven microservices powered by MassTransit + RabbitMQ.
+A small, production-style damage-prevention platform built using multi-tenant DDD, CQRS, and event-driven microservices powered by MassTransit + RabbitMQ, with two frontend clients:
 
 ## Services
 - **TicketSvc** – tenant-aware dig ticket intake & event publication
 - **SchedulingSvc** – automated work order creation & scheduling
 - **RiskSvc** – risk scoring, hazard analysis, tenant-scoped analytics
 - **Gateway** – YARP-based API gateway façade (JWT + multi-tenant headers)
-- **Web Client** – React + Redux dashboard for tenants -> Gateway (YARP)
+- **Web Client** – React and Angular dashboards → Gateway (YARP)
 
 ## Architecture
 - SaaS + multi-tenant  
@@ -19,8 +19,9 @@ A small, production-style damage prevention platform built with multi-tenant DDD
 
 ```mermaid
 flowchart LR
-    subgraph FE[Frontend]
-        W[React + Redux<br/>Web Client]
+    subgraph FE[Frontend Clients]
+        A[Angular 20 + NgRx<br/>Web Client]
+        R[React + Redux<br/>Web Client]
     end
 
     subgraph GW[API Gateway]
@@ -30,7 +31,7 @@ flowchart LR
     subgraph API[Backend Services]
         T[TicketSvc<br/>Ticket API + Events]
         S[SchedulingSvc<br/>Work Orders]
-        R[RiskSvc<br/>Risk Assessments]
+        RSK[RiskSvc<br/>Risk Assessments]
     end
 
     subgraph MQ[RabbitMQ Broker]
@@ -43,49 +44,53 @@ flowchart LR
         DB3[(db_risk<br/>SQL Server)]
     end
 
-    %% HTTP call flow
-    W -->|HTTP / JSON| G
-    G -->|HTTP / JSON| T
-    G -->|HTTP / JSON| S
-    G -->|HTTP / JSON| R
+    %% Clients → Gateway
+    A -->|HTTP| G
+    R -->|HTTP| G
+
+    %% Gateway → Services
+    G -->|HTTP| T
+    G -->|HTTP| S
+    G -->|HTTP| RSK
 
     %% Events
     T -- TicketSubmittedEvent --> Q1
     Q1 --> S
-    Q1 --> R
+    Q1 --> RSK
 
     %% Persistence
     T --> DB2
     S --> DB1
-    R --> DB3
+    RSK --> DB3
 ```
 
 ![Damage Prevention SaaS GIF](./images/damage-prevention.gif)
 
 [![Damage Prevention SaaS CI/CD](https://github.com/Sbadhon/Damage-Prevention/actions/workflows/ci-cd.yml/badge.svg)](https://github.com/Sbadhon/Damage-Prevention/actions/workflows/ci-cd.yml)
 
-## CI/CD
+## CI/CD Pipeline (GitHub Actions)
+**Trigger Conditions** 
+ - Every push / PR to main or develop
+ - Every tag matching v* (e.g., v1.0.0)
 
-This repository uses GitHub Actions for a minimal but complete CI/CD pipeline:
-
-- Triggers on pushes and pull requests to `main` and `develop`
-- Restores NuGet packages and builds the full solution in **Release** configuration
-- Runs all automated tests against the solution
-- On `v*` tags, publishes:
-  - `TicketSvc`
-  - `RiskSvc`
-  - `SchedulingSvc`
-  - `Gateway`
-- Uploads build artifacts for tagged releases for easy download/deployment
+ **What the pipeline does** 
+ - What the pipeline does
+ - Restores .NET dependencies
+ - Builds solution in Release mode
+ - Runs all backend automated tests
+ - Runs Angular frontend tests in CI mode
+ - On version tags:
+     - Publishes backend services
+     - Uploads artifacts
+     - Creates a GitHub Release automatically
 
 **Notes:**
-
-- `Api/` contains HTTP endpoints, middleware, and tenant-aware logic.  
-- `Application/` contains the CQRS/MediatR layer: commands, queries, DTOs, and cross-cutting behaviors.  
-- `Domain/` contains core business logic: aggregates, domain events, and repository interfaces.  
-- `Infrastructure/` provides concrete implementations: EF repositories, event publishers.  
-- `Program.cs` is the composition root where services are wired with DI.  
-- `appsettings*.json` are configuration files for different environments.  
+  - `Api/` contains HTTP endpoints, middleware, and tenant-aware logic.  
+  - `Application/` contains the CQRS/MediatR layer: commands, queries, DTOs, and cross-cutting behaviors.  
+  - `Domain/` contains core business logic: aggregates, domain events, and repository interfaces.  
+  - `Infrastructure/` provides concrete implementations: EF repositories, event publishers.  
+  - `Program.cs` is the composition root where services are wired with DI.  
+  - `appsettings*.json` are configuration files for different environments.  
 
 ## Tech Stack & Cross-Cutting Patterns
 ### Backend
@@ -101,7 +106,6 @@ This repository uses GitHub Actions for a minimal but complete CI/CD pipeline:
   - **Infrastructure** → Persistence, messaging
 
 ### Multi-Tenancy
-
 - Tenant resolved from `X-Tenant-Id` header (and later JWT claims)  
 - `ITenantProvider` + `TenantBehavior<TRequest, TResponse>`  
 - Tenant-aware requests implement `ITenantScopedRequest`  
@@ -142,7 +146,27 @@ The `SharedKernel` contains cross-cutting utilities, abstractions, and strongly-
   - Single configurable base URL for the API Gateway (e.g., `VITE_API_GATEWAY_URL=http://localhost:5117`)
   - Gateway fans out to TicketSvc, SchedulingSvc, and RiskSvc
 
-
+**Angular 20 (Standalone Components) + TypeScript + Vite**  
+**NgRx** Store for state management:
+  - `Tickets state`
+  - `Work Orders state`
+  - `Risk state`
+**Material** UI components
+  - Dialogs
+  - Tables
+  - Selects
+  - Status badges
+  - Dashboard widgets
+**UI components**:
+  - `TicketDashboard`
+  - `WorkOrderDashboard`
+  - `RiskDashboard`
+  - Pagination, Modal, RiskBadge, DashboardSummary
+**Gateway** – YARP-based API gateway façade (JWT + multi-tenant headers)
+**API client**:
+  - Every Angular HttpClient request automatically sends `X-Tenant-Id` header per request (e.g., `acme-corp`)
+  - Single configurable base URL for the API Gateway (e.g., `VITE_API_GATEWAY_URL=http://localhost:5117`)
+  - Gateway fans out to TicketSvc, SchedulingSvc, and RiskSvc
 
 ## Service Responsibilities
 ### TicketSvc – Multi-Tenant Ticket Intake
@@ -173,7 +197,8 @@ The `SharedKernel` contains cross-cutting utilities, abstractions, and strongly-
  {
   docker compose up -d   # starts rabbitmq + dbs
   dotnet run             # from each service folder
-  npm run dev            # from web-client folder
+  npm install            # inside web-client-angular
+  npm run dev            # from web-client / web-client-angular folder
  }
  ```
 
