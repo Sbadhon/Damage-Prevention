@@ -8,13 +8,14 @@ import { provideStoreDevtools } from '@ngrx/store-devtools';
 import { routes } from './app.routes';
 import { provideStore } from '@ngrx/store';
 import { provideEffects } from '@ngrx/effects';
-import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
+import { HTTP_INTERCEPTORS, provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 import { TicketEffects } from './core/state/ticket/ticket.effects';
 import { WorkOrderEffects } from './core/state/workorders/workorders.effects';
 import { RiskEffects } from './core/state/risk/risk.effects';
 import { ticketReducer } from './core/state/ticket/ticket.reducer';
 import { workOrderReducer } from './core/state/workorders/workorders.reducer';
 import { riskReducer } from './core/state/risk/risk.reducer';
+import { TenantInterceptor } from './core/interceptors/tenant.interceptor';
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -22,6 +23,11 @@ export const appConfig: ApplicationConfig = {
     provideZonelessChangeDetection(),
     provideRouter(routes),
     provideHttpClient(withInterceptorsFromDi()),
+    {
+      provide: HTTP_INTERCEPTORS,
+      useClass: TenantInterceptor,
+      multi: true,
+    },
     provideStore({
       tickets: ticketReducer,
       workorders: workOrderReducer,
