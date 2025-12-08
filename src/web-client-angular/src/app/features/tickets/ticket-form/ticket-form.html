@@ -49,8 +49,11 @@
         >
           Close
         </button>
-
-        <button type="submit" mat-raised-button color="primary" [disabled]="isSubmitting()">
+        <button
+          type="button"
+          class="px-4 py-2 text-sm font-medium shadow hover:shadow-md bg-teal-600 hover:bg-teal-700 text-white rounded-lg"
+          [disabled]="isSubmitting()"
+        >
           {{ isSubmitting() ? 'Submitting…' : 'Create Ticket' }}
         </button>
       </div>
