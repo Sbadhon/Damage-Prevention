@@ -14,13 +14,23 @@ import { FormsModule } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
-import {
-  MatProgressSpinnerModule,
-} from '@angular/material/progress-spinner';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatDialogModule, MatDialogRef } from '@angular/material/dialog';
+import { MatIconModule } from '@angular/material/icon';
+import { Store } from '@ngrx/store';
 import { Ticket } from '@app/core/state/ticket/ticket.models';
+import { createTicket } from '@app/core/state/ticket/ticket.actions';
 
 type NewTicketDto = Omit<Ticket, 'ticketId' | 'status' | 'createdAt'>;
+type IconDefaultProto = { _getIconUrl?: () => string };
+delete (L.Icon.Default.prototype as IconDefaultProto)._getIconUrl;
+
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl:
+    'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
+  iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
+  shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
+});
 
 @Component({
   standalone: true,
@@ -33,6 +43,7 @@ type NewTicketDto = Omit<Ticket, 'ticketId' | 'status' | 'createdAt'>;
     MatButtonModule,
     MatProgressSpinnerModule,
     MatDialogModule,
+    MatIconModule,
   ],
   templateUrl: './ticket-form.html',
   styleUrls: ['./ticket-form.scss'],
@@ -40,7 +51,8 @@ type NewTicketDto = Omit<Ticket, 'ticketId' | 'status' | 'createdAt'>;
 })
 export class TicketForm implements AfterViewInit, OnDestroy {
   private readonly dialogRef =
-    inject<MatDialogRef<TicketForm, NewTicketDto | undefined>>(MatDialogRef);
+    inject<MatDialogRef<TicketForm, void>>(MatDialogRef);
+  private readonly store = inject(Store);
 
   description = '';
   workType = '';
@@ -52,10 +64,9 @@ export class TicketForm implements AfterViewInit, OnDestroy {
 
   private map: L.Map | null = null;
   private marker: L.Marker | null = null;
-  private destroyed = false;
 
-  @ViewChild('mapContainer', { static: true })
-  mapContainer!: ElementRef<HTMLDivElement>;
+  @ViewChild('mapContainer', { static: false })
+  mapContainer?: ElementRef<HTMLDivElement>;
 
   async onAddressBlur(): Promise<void> {
     if (!this.address) {
@@ -68,7 +79,6 @@ export class TicketForm implements AfterViewInit, OnDestroy {
 
   async submit(): Promise<void> {
     if (!this.description || !this.workType || !this.address) {
-      // You can replace with a snackbar if you want.
       alert('Please fill out Description, Work Type, and Address.');
       return;
     }
@@ -83,15 +93,15 @@ export class TicketForm implements AfterViewInit, OnDestroy {
         lat: coords.lat,
         lon: coords.lon,
       };
-
-      this.dialogRef.close(payload);
+      this.store.dispatch(createTicket({ ticket: payload }));
+      this.dialogRef.close();
     } finally {
       this.isSubmitting.set(false);
     }
   }
 
   close(): void {
-    this.dialogRef.close(undefined);
+    this.dialogRef.close();
   }
 
   async updateCoordsForAddress(address: string): Promise<void> {
@@ -102,6 +112,7 @@ export class TicketForm implements AfterViewInit, OnDestroy {
       const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(
         address,
       )}&format=json&limit=1`;
+
       const response = await fetch(url, {
         headers: { 'User-Agent': 'damage-prevention-angular-client' },
       });
@@ -123,15 +134,15 @@ export class TicketForm implements AfterViewInit, OnDestroy {
   }
 
   ngAfterViewInit(): void {
-    this.initMap();
+    if (this.coords()) {
+      this.updateMap();
+    }
   }
 
-  private initMap(): void {
+  private ensureMap(): void {
     if (this.map || !this.mapContainer?.nativeElement) {
       return;
     }
-
-    // Default center (can be anywhere; Minneapolis-ish)
     this.map = L.map(this.mapContainer.nativeElement).setView(
       [44.9778, -93.265],
       12,
@@ -143,19 +154,25 @@ export class TicketForm implements AfterViewInit, OnDestroy {
   }
 
   private updateMap(): void {
-    if (!this.map) {
-      this.initMap();
-    }
-    if (!this.map || !this.coords()) {
+    const current = this.coords();
+    if (!current) {
+      this.resetMap();
       return;
     }
 
-    const { lat, lon } = this.coords()!;
+    this.ensureMap();
+    if (!this.map) {
+      return;
+    }
+
+    const { lat, lon } = current;
+
     if (!this.marker) {
       this.marker = L.marker([lat, lon]).addTo(this.map);
     } else {
       this.marker.setLatLng([lat, lon]);
     }
+
     this.map.setView([lat, lon], 15);
   }
 
@@ -167,7 +184,6 @@ export class TicketForm implements AfterViewInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
-    this.destroyed = true;
     if (this.map) {
       this.map.remove();
       this.map = null;

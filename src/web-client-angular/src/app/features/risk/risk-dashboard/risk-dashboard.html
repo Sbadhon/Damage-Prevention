@@ -1,5 +1,4 @@
 <div class="space-y-6">
-  <!-- Header -->
   <div class="flex items-center justify-between mb-4">
     <div>
       <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Risk Assessments</h2>
@@ -8,25 +7,18 @@
       </p>
     </div>
   </div>
-
-  <!-- Summary -->
   <ng-container *ngIf="dashboardStats$ | async as stats">
     <dp-dashboard-summary [stats]="stats"></dp-dashboard-summary>
   </ng-container>
-
-  <!-- Card -->
   <div
     class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl shadow-sm overflow-hidden"
   >
     <div class="overflow-x-auto">
       <ng-container *ngIf="riskState$ | async as state">
-        <!-- Loading -->
         <ng-container *ngIf="state.loading; else loadedBlock">
           <div class="p-6 text-center text-gray-500">Loading risk assessments…</div>
         </ng-container>
-
         <ng-template #loadedBlock>
-          <!-- Error -->
           <ng-container *ngIf="state.error as error; else dataBlock">
             <div class="p-6 text-center text-red-500">
               {{ error }}

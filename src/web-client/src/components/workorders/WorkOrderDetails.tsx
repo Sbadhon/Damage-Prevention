@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { WorkOrder } from "../../types";
+import { WorkOrder, WorkOrderStatus } from "../../types";
 import { useAppDispatch } from "../../hooks";
 import { assignCrewThunk } from "../../state/workOrdersSlice";
 import api from "../../services/api";
@@ -124,7 +124,7 @@ export const WorkOrderDetails: React.FC<{
             <button
               onClick={handleAssign}
               disabled={
-                !selectedCrew || selectedCrew === workOrder.crewId || assigning
+                !selectedCrew || selectedCrew === workOrder.crewId || assigning || workOrder.status === WorkOrderStatus.Cancelled
               }
               className="w-full sm:w-auto px-6 py-2.5 text-sm font-bold text-white bg-teal-600 rounded-lg hover:bg-teal-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors shadow-sm"
             >

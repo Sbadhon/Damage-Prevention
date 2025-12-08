@@ -23,6 +23,7 @@ import * as WorkOrderActions from '@app/core/state/workorders/workorders.actions
 import { Crew, WorkOrder, WorkOrderStatus } from '@app/core/state/workorders/workorders.models';
 import { Store } from '@ngrx/store';
 import { Subject, takeUntil } from 'rxjs';
+import { MatIcon } from "@angular/material/icon";
 
 export interface WorkOrderDetailData {
   workOrder: WorkOrder;
@@ -40,7 +41,8 @@ export interface WorkOrderDetailData {
     MatOptionModule,
     MatButtonModule,
     StatusBadge,
-  ],
+    MatIcon
+],
   templateUrl: './workorder-details.html',
   styleUrls: ['./workorder-details.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -48,7 +50,7 @@ export interface WorkOrderDetailData {
 export class WorkOrderDetail implements OnInit, OnDestroy {
   private readonly store = inject(Store);
   private readonly destroy$ = new Subject<void>();
-
+  WorkOrderStatus = WorkOrderStatus;
   workOrder: WorkOrder;
   currentStatus: WorkOrderStatus;
 
@@ -109,7 +111,17 @@ export class WorkOrderDetail implements OnInit, OnDestroy {
         return [current];
     }
   }
-
+  updateStatus(newStatus: WorkOrderStatus): void {
+    this.currentStatus = newStatus;
+  
+    this.store.dispatch(
+      WorkOrderActions.updateWorkOrderStatus({
+        id: this.workOrder.workOrderId,
+        status: newStatus,
+      })
+    );
+  }
+  
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();

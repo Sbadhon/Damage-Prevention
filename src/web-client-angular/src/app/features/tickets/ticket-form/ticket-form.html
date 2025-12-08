@@ -1,84 +1,59 @@
-<form
-  class="space-y-4"
-  (ngSubmit)="submit()"
->
-  <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">
-    Create New Ticket
-  </h2>
-
-  <mat-form-field
-    appearance="fill"
-    class="w-full"
-  >
-    <mat-label>Description</mat-label>
-    <input
-      matInput
-      [(ngModel)]="description"
-      name="description"
-      required
-    />
-  </mat-form-field>
-
-  <mat-form-field
-    appearance="fill"
-    class="w-full"
-  >
-    <mat-label>Work Type</mat-label>
-    <input
-      matInput
-      [(ngModel)]="workType"
-      name="workType"
-      required
-    />
-  </mat-form-field>
-
-  <mat-form-field
-    appearance="fill"
-    class="w-full"
-  >
-    <mat-label>Address</mat-label>
-    <input
-      matInput
-      [(ngModel)]="address"
-      name="address"
-      required
-      (blur)="onAddressBlur()"
-    />
-  </mat-form-field>
-
+<div class="bg-white dark:bg-slate-800 text-gray-700 dark:text-gray-100">
   <div
-    *ngIf="loadingCoords()"
-    class="flex items-center gap-2 text-sm text-gray-500"
+    class="flex items-center justify-between mb-4 border-b border-gray-200 dark:border-slate-700 pb-3"
   >
-    <mat-progress-spinner
-      diameter="20"
-      mode="indeterminate"
-    ></mat-progress-spinner>
-    <span>Fetching coordinates…</span>
-  </div>
-
-  <div
-    #mapContainer
-    class="h-64 w-full mt-2 rounded-md border border-gray-200 dark:border-gray-700"
-  ></div>
-
-  <div class="flex justify-end gap-2 mt-4">
-    <button
-      type="button"
-      class="px-4 py-2 text-sm font-medium shadow hover:shadow-md
-            bg-teal-600 hover:bg-teal-700 text-white rounded-lg"
-            (click)="close()"
-      >
-      Close
-    </button>
+    <h2 class="text-lg font-semibold p-4">Create New Ticket</h2>
 
     <button
-      type="submit"
-      mat-raised-button
-      color="primary"
-      [disabled]="isSubmitting()"
+      mat-icon-button
+      (click)="close()"
+      aria-label="Close"
+      class="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
     >
-      {{ isSubmitting() ? 'Submitting…' : 'Create Ticket' }}
+      <mat-icon>close</mat-icon>
     </button>
   </div>
-</form>
+
+  <div class="p-4">
+    <form class="space-y-4" (ngSubmit)="submit()">
+      <mat-form-field appearance="fill" class="w-full">
+        <mat-label>Description</mat-label>
+        <input matInput [(ngModel)]="description" name="description" required />
+      </mat-form-field>
+      <mat-form-field appearance="fill" class="w-full">
+        <mat-label>Work Type</mat-label>
+        <input matInput [(ngModel)]="workType" name="workType" required />
+      </mat-form-field>
+      <mat-form-field appearance="fill" class="w-full">
+        <mat-label>Address</mat-label>
+        <input matInput [(ngModel)]="address" name="address" required (blur)="onAddressBlur()" />
+      </mat-form-field>
+      <div *ngIf="loadingCoords()" class="flex items-center gap-2 text-sm text-gray-500">
+        <mat-progress-spinner diameter="20" mode="indeterminate"></mat-progress-spinner>
+        <span>Fetching coordinates…</span>
+      </div>
+
+      <div class="mt-2">
+        <div
+          #mapContainer
+          class="h-64 w-full rounded-md border border-gray-200 dark:border-gray-700"
+          [class.hidden]="!coords()"
+        ></div>
+      </div>
+
+      <div class="flex justify-end gap-2 mt-4">
+        <button
+          type="button"
+          class="px-4 py-2 text-sm font-medium shadow hover:shadow-md bg-gray-200 dark:bg-slate-700 dark:text-gray-100 text-gray-800 rounded-lg"
+          (click)="close()"
+        >
+          Close
+        </button>
+
+        <button type="submit" mat-raised-button color="primary" [disabled]="isSubmitting()">
+          {{ isSubmitting() ? 'Submitting…' : 'Create Ticket' }}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

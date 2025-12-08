@@ -8,13 +8,11 @@ import {
 import { CommonModule } from '@angular/common';
 import { Store } from '@ngrx/store';
 import { Subject } from 'rxjs';
-import { map, takeUntil } from 'rxjs/operators';
-
+import { map } from 'rxjs/operators';
 import * as RiskActions from '@app/core/state/risk/risk.actions';
 import * as RiskSelectors from '@app/core/state/risk/risk.selectors';
 import { RiskAssessment, RiskLevel } from '@app/core/state/risk/risk.models';
 import { ListParams } from '@app/core/state/util/util.model';
-
 import { MatTableModule } from '@angular/material/table';
 import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 

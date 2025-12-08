@@ -1,10 +1,4 @@
-import {
-  ChangeDetectionStrategy,
-  Component,
-  inject,
-  OnDestroy,
-  OnInit,
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Store } from '@ngrx/store';
@@ -18,7 +12,10 @@ import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatSelectModule } from '@angular/material/select';
 import { MatInputModule } from '@angular/material/input';
 import { MatFormFieldModule } from '@angular/material/form-field';
-import { DashboardSummary, DashboardStat } from '@app/shared/component/dashboard-summary/dashboard-summary';
+import {
+  DashboardSummary,
+  DashboardStat,
+} from '@app/shared/component/dashboard-summary/dashboard-summary';
 import { StatusBadge } from '@app/shared/component/status-badge/status-badge';
 import { WorkOrderDetail, WorkOrderDetailData } from '../workorder-details/workorder-details';
 import { WorkOrder, WorkOrderStatus } from '@app/core/state/workorders/workorders.models';
@@ -48,6 +45,7 @@ import { ListParams } from '@app/core/state/util/util.model';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class WorkordersDashboard implements OnInit, OnDestroy {
+  WorkOrderStatus = WorkOrderStatus;
   private readonly store = inject(Store);
   private readonly dialog = inject(MatDialog);
   private readonly destroy$ = new Subject<void>();
@@ -97,13 +95,19 @@ export class WorkordersDashboard implements OnInit, OnDestroy {
       data: { workOrder },
     });
 
-    dialogRef.afterClosed().pipe(takeUntil(this.destroy$)).subscribe((result) => {
-      if (result?.statusChanged && result.newStatus) {
-        this.store.dispatch(
-          WorkOrderActions.updateWorkOrderStatus({ id: workOrder.workOrderId, status: result.newStatus })
-        );
-      }
-    });
+    dialogRef
+      .afterClosed()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((result) => {
+        if (result?.statusChanged && result.newStatus) {
+          this.store.dispatch(
+            WorkOrderActions.updateWorkOrderStatus({
+              id: workOrder.workOrderId,
+              status: result.newStatus,
+            }),
+          );
+        }
+      });
   }
 
   filteredWorkOrders(workOrders: WorkOrder[] | null | undefined): WorkOrder[] {
@@ -123,17 +127,60 @@ export class WorkordersDashboard implements OnInit, OnDestroy {
     });
   }
 
-
   readonly dashboardStats$ = this.workOrdersState$.pipe(
-    map((state) => this.buildDashboardStats(state?.workOrders?.items ?? []))
+    map((state) => this.buildDashboardStats(state?.workOrders?.items ?? [])),
   );
 
   private buildDashboardStats(workOrders: WorkOrder[]): DashboardStat[] {
     return [
-      { title: 'Pending', value: workOrders.filter(w => w.status === WorkOrderStatus.Pending).length, color: 'bg-blue-100 dark:bg-blue-900/40' },
-      { title: 'Assigned', value: workOrders.filter(w => w.status === WorkOrderStatus.Assigned).length, color: 'bg-yellow-100 dark:bg-yellow-500/20' },
-      { title: 'Completed', value: workOrders.filter(w => w.status === WorkOrderStatus.Completed).length, color: 'bg-green-100 dark:bg-green-500/20' },
-      { title: 'Cancelled', value: workOrders.filter(w => w.status === WorkOrderStatus.Cancelled).length, color: 'bg-red-100 dark:bg-red-500/20' },
+      {
+        title: 'Pending',
+        value: workOrders.filter((w) => w.status === WorkOrderStatus.Pending).length,
+        color: 'bg-blue-100 dark:bg-blue-900/40',
+      },
+      {
+        title: 'Assigned',
+        value: workOrders.filter((w) => w.status === WorkOrderStatus.Assigned).length,
+        color: 'bg-yellow-100 dark:bg-yellow-500/20',
+      },
+      {
+        title: 'Completed',
+        value: workOrders.filter((w) => w.status === WorkOrderStatus.Completed).length,
+        color: 'bg-green-100 dark:bg-green-500/20',
+      },
+      {
+        title: 'Cancelled',
+        value: workOrders.filter((w) => w.status === WorkOrderStatus.Cancelled).length,
+        color: 'bg-red-100 dark:bg-red-500/20',
+      },
     ];
+  }
+
+  getAllowedTransitions(current: WorkOrderStatus): WorkOrderStatus[] {
+    switch (current) {
+      case WorkOrderStatus.Pending:
+        return [WorkOrderStatus.Pending, WorkOrderStatus.Assigned, WorkOrderStatus.Cancelled];
+      case WorkOrderStatus.Assigned:
+        return [WorkOrderStatus.Assigned, WorkOrderStatus.Completed, WorkOrderStatus.Cancelled];
+      case WorkOrderStatus.Completed:
+        return [WorkOrderStatus.Completed];
+      case WorkOrderStatus.Cancelled:
+        return [WorkOrderStatus.Cancelled];
+      default:
+        return [];
+    }
+  }
+
+  handleStatusChange(id: string, newStatus: WorkOrderStatus): void {
+    this.store.dispatch(
+      WorkOrderActions.updateWorkOrderStatus({
+        id,
+        status: newStatus,
+      }),
+    );
+  }
+  onStatusChange(event: Event, workOrderId: string): void {
+    const value = (event.target as HTMLSelectElement).value as WorkOrderStatus;
+    this.handleStatusChange(workOrderId, value);
   }
 }

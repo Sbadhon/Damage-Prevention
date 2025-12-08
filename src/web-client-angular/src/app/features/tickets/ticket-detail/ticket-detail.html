@@ -1,133 +1,83 @@
-<h2
-  mat-dialog-title
-  class="text-lg font-semibold text-gray-900 dark:text-white"
->
-  Ticket Details – {{ ticket.ticketId }}
-</h2>
+<div class="bg-white dark:bg-slate-800 text-gray-700 dark:text-gray-100">
+  <div
+    class="flex items-center justify-between mb-4 border-b border-gray-200 dark:border-slate-700 pb-3"
+  >
+    <h2 class="text-lg font-semibold p-4">Ticket Details: {{ ticket.ticketId }}</h2>
+    <button
+      mat-icon-button
+      (click)="close()"
+      aria-label="Close"
+      class="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
+    >
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
 
-<div
-  mat-dialog-content
-  class="space-y-6"
->
-  <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-    <div class="space-y-2 text-gray-600 dark:text-gray-300">
+  <div class="space-y-4 flex">
+    <div class="p-6 space-y-2">
       <p>
-        <strong class="text-gray-500 dark:text-gray-400">
-          Description:
-        </strong>
-        {{ ticket.description }}
+        <span class="font-medium text-gray-500 dark:text-gray-400">Description:</span>
+        <span class="ml-1">{{ ticket.description }}</span>
       </p>
       <p>
-        <strong class="text-gray-500 dark:text-gray-400">
-          Work Type:
-        </strong>
-        {{ ticket.workType }}
+        <span class="font-medium text-gray-500 dark:text-gray-400">Work Type:</span>
+        <span class="ml-1">{{ ticket.workType }}</span>
       </p>
       <p>
-        <strong class="text-gray-500 dark:text-gray-400">
-          Address:
-        </strong>
-        {{ ticket.address }}
+        <span class="font-medium text-gray-500 dark:text-gray-400">Address:</span>
+        <span class="ml-1">{{ ticket.address }}</span>
       </p>
       <p>
-        <strong class="text-gray-500 dark:text-gray-400">
-          Lat:
-        </strong>
-        {{ ticket.lat }}
+        <span class="font-medium text-gray-500 dark:text-gray-400">Lat:</span>
+        <span class="ml-1">{{ ticket.lat }}</span>
       </p>
       <p>
-        <strong class="text-gray-500 dark:text-gray-400">
-          Lon:
-        </strong>
-        {{ ticket.lon }}
+        <span class="font-medium text-gray-500 dark:text-gray-400">Lon:</span>
+        <span class="ml-1">{{ ticket.lon }}</span>
       </p>
       <p>
-        <strong class="text-gray-500 dark:text-gray-400">
-          Created:
-        </strong>
-        {{ ticket.createdAt | date: 'short' }}
+        <span class="font-medium text-gray-500 dark:text-gray-400">Created:</span>
+        <span class="ml-1">{{ ticket.createdAt | date: 'short' }}</span>
       </p>
-      <p class="flex items-center gap-2">
-        <strong class="text-gray-500 dark:text-gray-400">
-          Status:
-        </strong>
-        <dp-status-badge [level]="ticket.status"></dp-status-badge>
-      </p>
-    </div>
-    <div class="space-y-4">
-      <div>
-        <mat-form-field
-          appearance="fill"
-          class="w-full"
-        >
-          <mat-label>Status</mat-label>
-          <mat-select [(ngModel)]="currentStatus">
+      <div class="flex">
+        <span class="font-medium text-gray-500 dark:text-gray-400 pt-4">Status:</span>
+  
+        <mat-form-field appearance="fill" class="min-w-[10rem]">
+          <mat-select
+            [(ngModel)]="selectedStatus"
+            (ngModelChange)="onStatusChange($event)"
+          >
             <mat-option
-              *ngFor="let status of getAllowedTransitions(ticket.status)"
+              *ngFor="let status of statusOptions"
               [value]="status"
+              [disabled]="!ticket.crewId"
             >
               {{ status }}
             </mat-option>
           </mat-select>
         </mat-form-field>
-        <p class="text-xs text-gray-500 dark:text-gray-400">
-          (Business rules for allowed transitions match the React client.)
-        </p>
-      </div>
-
-      <!-- Risk -->
-      <div>
-        <div class="flex items-center gap-2 mb-1">
-          <strong class="text-gray-500 dark:text-gray-400">
-            Risk:
-          </strong>
-          <ng-container *ngIf="risk$ | async as risk; else noRisk">
-            <span
-              class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold
-                     bg-red-100 text-red-700"
-              *ngIf="risk"
-            >
-              {{ risk.level }} ({{ risk.score }})
-            </span>
-          </ng-container>
-          <ng-template #noRisk>
-            <span class="text-xs text-gray-500 dark:text-gray-400">
-              No risk assessment yet.
-            </span>
-          </ng-template>
-        </div>
-
-        <ng-container *ngIf="risk$ | async as risk">
-          <p
-            *ngIf="risk"
-            class="text-sm text-gray-600 dark:text-gray-300"
-          >
-            Assessed at {{ risk.assessedAt | date: 'short' }}
-          </p>
-        </ng-container>
       </div>
     </div>
+    <div class="p-4 space-y-2">
+      <ng-container *ngIf="risk$ | async as risk; else loadingRisk">
+        <p>
+          <span class="font-medium text-gray-500 dark:text-gray-400">Risk:</span>
+          <span class="ml-1">
+            <dp-status-badge [level]="risk.level"></dp-status-badge>
+          </span>
+        </p>
+        <p>
+          <span class="font-medium text-gray-500 dark:text-gray-400">Score:</span>
+          <span class="ml-1">{{ risk.score }}</span>
+        </p>
+        <p>
+          <span class="font-medium text-gray-500 dark:text-gray-400">Assessed at:</span>
+          <span class="ml-1">{{ risk.assessedAt | date: 'short' }}</span>
+        </p>
+      </ng-container>
+      <ng-template #loadingRisk>
+        <p class="text-sm text-gray-500 dark:text-gray-400">Loading risk…</p>
+      </ng-template>
+    </div>
   </div>
-</div>
-
-<div
-  mat-dialog-actions
-  class="flex justify-end gap-2 mt-4"
->
-  <button
-    type="button"
-    class="px-4 py-2 text-sm font-medium shadow hover:shadow-md
-          bg-teal-600 hover:bg-teal-700 text-white rounded-lg"
-          (click)="close()"
-    >
-    Close
-  </button>
-
-  <button
-    mat-raised-button
-    color="primary"
-    (click)="saveStatus()"
-  >
-    Save
-  </button>
 </div>

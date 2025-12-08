@@ -1,17 +1,29 @@
-import { ChangeDetectionStrategy, Component, Inject, OnInit } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  inject,
+  Inject,
+  OnInit,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
-import { MatSelectModule } from '@angular/material/select';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatOptionModule } from '@angular/material/core';
+import {
+  MAT_DIALOG_DATA,
+  MatDialogModule,
+  MatDialogRef,
+} from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
+import { MatFormField, MatSelect, MatOption } from '@angular/material/select';
 import { FormsModule } from '@angular/forms';
+import { Store } from '@ngrx/store';
+
 import { Ticket, TicketStatus } from '@app/core/state/ticket/ticket.models';
+import { updateTicketStatus } from '@app/core/state/ticket/ticket.actions';
+
+import * as RiskActions from '@app/core/state/risk/risk.actions';
+import * as RiskSelectors from '@app/core/state/risk/risk.selectors';
+import { Subject } from 'rxjs';
 import { StatusBadge } from '@app/shared/component/status-badge/status-badge';
-import { RiskService } from '@app/core/state/risk/risk.api';
-import { RiskAssessment } from '@app/core/state/risk/risk.models';
-import { Observable, of } from 'rxjs';
-import { catchError } from 'rxjs/operators';
 
 export interface TicketDetailData {
   ticket: Ticket;
@@ -24,10 +36,11 @@ export interface TicketDetailData {
     CommonModule,
     FormsModule,
     MatDialogModule,
-    MatFormFieldModule,
-    MatSelectModule,
-    MatOptionModule,
     MatButtonModule,
+    MatIconModule,
+    MatFormField,
+    MatSelect,
+    MatOption,
     StatusBadge,
   ],
   templateUrl: './ticket-detail.html',
@@ -35,52 +48,78 @@ export interface TicketDetailData {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class TicketDetail implements OnInit {
+  private readonly store = inject(Store);
+  private readonly destroy$ = new Subject<void>();
+  
   ticket: Ticket;
-  currentStatus: TicketStatus;
-  risk$: Observable<RiskAssessment | null> = of(null);
-
+  selectedStatus!: TicketStatus;
+  statusOptions: TicketStatus[] = [];
+  risk$ = this.store.select(RiskSelectors.selectSelectedRisk);
   constructor(
-    @Inject(MAT_DIALOG_DATA) data: TicketDetailData,
+    @Inject(MAT_DIALOG_DATA) public data: TicketDetailData,
     private readonly dialogRef: MatDialogRef<TicketDetail>,
-    private readonly riskService: RiskService,
   ) {
     this.ticket = data.ticket;
-    this.currentStatus = data.ticket.status;
+    this.selectedStatus = data.ticket.status;
   }
 
-  ngOnInit(): void {
-    this.risk$ = this.riskService
-      .getRiskByTicketId(this.ticket.ticketId)
-      .pipe(catchError(() => of(null)));
+  ngOnInit() {
+    this.store.dispatch(
+      RiskActions.loadRiskByTicket({ ticketId: this.ticket.ticketId })
+    );
+
+    this.statusOptions = this.getAllowedTransitions(
+      this.ticket.status,
+      this.ticket.crewId
+    );
   }
 
-  close(): void {
-    this.dialogRef.close({ statusChanged: false });
-  }
-
-  saveStatus(): void {
-    if (this.currentStatus !== this.ticket.status) {
-      this.dialogRef.close({
-        statusChanged: true,
-        newStatus: this.currentStatus,
-      });
-    } else {
-      this.dialogRef.close({ statusChanged: false });
-    }
-  }
-
-  getAllowedTransitions(current: TicketStatus): TicketStatus[] {
+  getAllowedTransitions(
+    current: TicketStatus,
+    crewAssigned?: string | null
+  ): TicketStatus[] {
     switch (current) {
-      case TicketStatus.Open:
-        return [TicketStatus.Open, TicketStatus.InProgress, TicketStatus.Cancelled];
+      case TicketStatus.Open: {
+        const transitions = [
+          TicketStatus.Open,
+          TicketStatus.Completed,
+          TicketStatus.Cancelled,
+        ];
+
+        if (crewAssigned) {
+          transitions.splice(1, 0, TicketStatus.InProgress);
+        }
+        return transitions;
+      }
+
       case TicketStatus.InProgress:
-        return [TicketStatus.InProgress, TicketStatus.Completed, TicketStatus.Cancelled];
+        return [
+          TicketStatus.InProgress,
+          TicketStatus.Completed,
+          TicketStatus.Cancelled,
+        ];
+
       case TicketStatus.Completed:
-        return [TicketStatus.Completed];
       case TicketStatus.Cancelled:
-        return [TicketStatus.Cancelled];
+        return [current];
+
       default:
         return [current];
     }
+  }
+
+  onStatusChange(newStatus: TicketStatus) {
+    this.selectedStatus = newStatus;
+
+    this.store.dispatch(
+      updateTicketStatus({
+        ticketId: this.ticket.ticketId,
+        newStatus,
+      })
+    );
+  }
+
+  close(): void {
+    this.dialogRef.close();
   }
 }

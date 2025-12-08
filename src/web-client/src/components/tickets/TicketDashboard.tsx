@@ -150,17 +150,27 @@ const TicketDetails: React.FC<{
         <div>
           <div className="space-y-4">
             <div>
-              <div className="flex items-center gap-2 mb-1">
+              <p>
                 <strong className="text-gray-500 dark:text-gray-400">
                   Risk:
                 </strong>{" "}
                 {risk && <RiskBadge level={risk.level} />}
-              </div>
+              </p>
               {risk ? (
-                <p className="text-sm text-gray-600 dark:text-gray-300">
-                  Score: {risk.score} • Assessed at{" "}
-                  {new Date(risk.assessedAt).toLocaleString()}
-                </p>
+                <>
+                  <p>
+                    <strong className="text-gray-500 dark:text-gray-400">
+                      Score:
+                    </strong>{" "}
+                    {risk.score}
+                  </p>
+                  <p>
+                    <strong className="text-gray-500 dark:text-gray-400">
+                      Assessed at:
+                    </strong>{" "}
+                    {new Date(risk.assessedAt).toLocaleString()}
+                  </p>
+                </>
               ) : (
                 <p className="text-sm text-gray-500 dark:text-gray-400">
                   Loading risk assessment…
