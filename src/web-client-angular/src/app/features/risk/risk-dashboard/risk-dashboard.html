@@ -7,9 +7,11 @@
       </p>
     </div>
   </div>
+
   <ng-container *ngIf="dashboardStats$ | async as stats">
     <dp-dashboard-summary [stats]="stats"></dp-dashboard-summary>
   </ng-container>
+
   <div
     class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl shadow-sm overflow-hidden"
   >
@@ -47,6 +49,7 @@
                     {{ risk.riskId }}
                   </td>
                 </ng-container>
+
                 <ng-container matColumnDef="ticketId">
                   <th
                     mat-header-cell
@@ -63,6 +66,7 @@
                     {{ risk.ticketId }}
                   </td>
                 </ng-container>
+
                 <ng-container matColumnDef="level">
                   <th
                     mat-header-cell
@@ -79,6 +83,7 @@
                     <dp-status-badge [level]="risk.level"></dp-status-badge>
                   </td>
                 </ng-container>
+
                 <ng-container matColumnDef="score">
                   <th
                     mat-header-cell
@@ -95,6 +100,7 @@
                     {{ risk.score | number: '1.2-2' }}
                   </td>
                 </ng-container>
+
                 <ng-container matColumnDef="address">
                   <th
                     mat-header-cell
@@ -111,6 +117,7 @@
                     {{ risk.address }}
                   </td>
                 </ng-container>
+
                 <ng-container matColumnDef="assessedAt">
                   <th
                     mat-header-cell
@@ -135,7 +142,7 @@
                 ></tr>
                 <tr
                   mat-row
-                  *matRowDef="let row; columns: displayedColumns; trackBy: trackByRiskId"
+                  *matRowDef="let row; columns: displayedColumns"
                   class="hover:bg-gray-50 dark:hover:bg-gray-800/60 transition-colors"
                 ></tr>
               </table>

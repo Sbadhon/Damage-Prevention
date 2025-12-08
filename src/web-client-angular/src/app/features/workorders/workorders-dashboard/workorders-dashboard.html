@@ -7,9 +7,11 @@
       </p>
     </div>
   </div>
+
   <ng-container *ngIf="dashboardStats$ | async as stats">
     <dp-dashboard-summary [stats]="stats"></dp-dashboard-summary>
   </ng-container>
+
   <div
     class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl shadow-sm overflow-hidden"
   >
@@ -33,6 +35,7 @@
         </mat-form-field>
       </div>
     </div>
+
     <div class="overflow-x-auto">
       <ng-container *ngIf="workOrdersState$ | async as state">
         <ng-container *ngIf="state.loading; else loadedBlock">
@@ -44,7 +47,6 @@
               {{ error }}
             </div>
           </ng-container>
-
           <ng-template #dataBlock>
             <ng-container *ngIf="state.workOrders?.items?.length; else noResults">
               <table
@@ -68,6 +70,7 @@
                     {{ wo.workOrderId }}
                   </td>
                 </ng-container>
+
                 <ng-container matColumnDef="ticketId">
                   <th
                     mat-header-cell
@@ -84,6 +87,7 @@
                     {{ wo.ticketId }}
                   </td>
                 </ng-container>
+
                 <ng-container matColumnDef="crew">
                   <th
                     mat-header-cell
@@ -100,6 +104,7 @@
                     {{ wo.crewName || 'Unassigned' }}
                   </td>
                 </ng-container>
+
                 <ng-container matColumnDef="scheduledAt">
                   <th
                     mat-header-cell
@@ -116,6 +121,7 @@
                     {{ wo.scheduledAt | date: 'short' }}
                   </td>
                 </ng-container>
+
                 <ng-container matColumnDef="status">
                   <th
                     mat-header-cell
@@ -128,6 +134,7 @@
                     <dp-status-badge [level]="wo.status"></dp-status-badge>
                   </td>
                 </ng-container>
+
                 <ng-container matColumnDef="actions">
                   <th
                     mat-header-cell
@@ -149,22 +156,27 @@
 
                       <!-- Status Dropdown -->
                       <select
-                      [value]="wo.status"
-                      (change)="onStatusChange($event, wo.workOrderId)"
-                      [disabled]="wo.status === WorkOrderStatus.Completed || wo.status === WorkOrderStatus.Cancelled"
-                      class="text-xs text-gray-800 dark:text-gray-200 rounded-md border-gray-300 dark:border-gray-700
-                             bg-white dark:bg-gray-800 disabled:bg-gray-300 dark:disabled:bg-gray-700"
-                    >
-                      <option
-                        *ngFor="let status of getAllowedTransitions(wo.status)"
-                        [value]="status"
-                        [disabled]="status === WorkOrderStatus.Assigned && !wo.crewName"
-                        [title]="status === WorkOrderStatus.Assigned && !wo.crewName ? 'Assign a crew first' : ''"
+                        [value]="wo.status"
+                        (change)="onStatusChange($event, wo.workOrderId)"
+                        [disabled]="
+                          wo.status === WorkOrderStatus.Completed ||
+                          wo.status === WorkOrderStatus.Cancelled
+                        "
+                        class="text-xs text-gray-800 dark:text-gray-200 rounded-md border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 disabled:bg-gray-300 dark:disabled:bg-gray-700"
                       >
-                        {{ status }}
-                      </option>
-                    </select>
-                    
+                        <option
+                          *ngFor="let status of getAllowedTransitions(wo.status)"
+                          [value]="status"
+                          [disabled]="status === WorkOrderStatus.Assigned && !wo.crewName"
+                          [title]="
+                            status === WorkOrderStatus.Assigned && !wo.crewName
+                              ? 'Assign a crew first'
+                              : ''
+                          "
+                        >
+                          {{ status }}
+                        </option>
+                      </select>
                     </div>
                   </td>
                 </ng-container>
@@ -176,7 +188,7 @@
                 ></tr>
                 <tr
                   mat-row
-                  *matRowDef="let row; columns: displayedColumns; trackBy: trackByWorkOrderId"
+                  *matRowDef="let row; columns: displayedColumns"
                   class="hover:bg-gray-50 dark:hover:bg-gray-800/60 transition-colors"
                 ></tr>
               </table>
